@@ -1,0 +1,44 @@
+﻿@model LeaveManagement.WebUI.ViewModels.LeaveRequestTabViewModel
+@using LeaveManagement.Domain.Enums
+
+<div class="container px-1 px-md-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+        <h3 class="fw-bold text-primary mb-0">
+            <i class="bi bi-list-task me-2"></i> Danh sách đơn nghỉ phép
+        </h3>
+        <a asp-action="Create" class="btn btn-success px-4">
+            <i class="bi bi-plus-circle"></i> Tạo đơn mới
+        </a>
+    </div>
+    <ul class="nav nav-tabs mb-3" id="requestTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(Model.CurrentTab == "Drafts" ? "active" : "")"
+               href="@Url.Action("Index", new { tab = "Drafts", page = 1 })">
+                Tạo mới <span class="badge bg-secondary">@Model.DraftTotal</span>
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(Model.CurrentTab == "Submitted" ? "active" : "")"
+               href="@Url.Action("Index", new { tab = "Submitted", page = 1 })">
+                Đang duyệt <span class="badge bg-primary">@Model.SubmittedTotal</span>
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(Model.CurrentTab == "Approved" ? "active" : "")"
+               href="@Url.Action("Index", new { tab = "Approved", page = 1 })">
+                Đã duyệt <span class="badge bg-success">@Model.ApprovedTotal</span>
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(Model.CurrentTab == "Rejected" ? "active" : "")"
+               href="@Url.Action("Index", new { tab = "Rejected", page = 1 })">
+                Từ chối <span class="badge bg-danger">@Model.RejectedTotal</span>
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content" id="requestTabContent">
+        <div class="tab-pane fade show active">
+            @await Html.PartialAsync("_LeaveRequestCardListPartial", Model)
+        </div>
+    </div>
+</div>

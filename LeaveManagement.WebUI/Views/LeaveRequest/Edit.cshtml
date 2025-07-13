@@ -1,0 +1,146 @@
+﻿@* @model LeaveManagement.WebUI.ViewModels.LeaveRequestDto
+
+@{
+    ViewData["Title"] = "Sửa đơn nghỉ phép";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="UserId" /> <!-- ✅ cần thiết -->
+
+    <div class="form-group">
+        <label asp-for="FromDate"></label>
+        <input asp-for="FromDate" type="date" class="form-control" />
+        <span asp-validation-for="FromDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ToDate"></label>
+        <input asp-for="ToDate" type="date" class="form-control" />
+        <span asp-validation-for="ToDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Reason"></label>
+        <textarea asp-for="Reason" class="form-control"></textarea>
+        <span asp-validation-for="Reason" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="VacationPlace"></label>
+        <textarea asp-for="VacationPlace" class="form-control"></textarea>
+        <span asp-validation-for="VacationPlace" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+ *@
+
+
+@model LeaveManagement.WebUI.ViewModels.LeaveRequestDto
+
+@{
+    ViewData["Title"] = "Sửa đơn nghỉ phép";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow rounded-3">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">@ViewData["Title"]</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" autocomplete="off">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="UserId" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FromDate" class="form-label"></label>
+                                <input asp-for="FromDate" type="date" class="form-control" />
+                                <span asp-validation-for="FromDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ToDate" class="form-label"></label>
+                                <input asp-for="ToDate" type="date" class="form-control" />
+                                <span asp-validation-for="ToDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6" id="from-date-type-group">
+                                <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">bắt đầu</span></label>
+                                <select asp-for="FromDateType" class="form-select">
+                                    <option value="Full">Cả ngày</option>
+                                    <option value="Morning">Nửa buổi sáng</option>
+                                    <option value="Afternoon">Nửa buổi chiều</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="to-date-type-group">
+                                <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">kết thúc</span></label>
+                                <select asp-for="ToDateType" class="form-select">
+                                    <option value="Full">Cả ngày</option>
+                                    <option value="Morning">Nửa buổi sáng</option>
+                                    <option value="Afternoon">Nửa buổi chiều</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Reason" class="form-label"></label>
+                            <textarea asp-for="Reason" class="form-control" rows="2"></textarea>
+                            <span asp-validation-for="Reason" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="VacationPlace" class="form-label"></label>
+                            <textarea asp-for="VacationPlace" class="form-control" rows="1"></textarea>
+                            <span asp-validation-for="VacationPlace" class="text-danger"></span>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-check2-square"></i> Cập nhật
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary ms-2">Quay lại</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Hiển thị select buổi hợp lý khi nghỉ 1 ngày hay nhiều ngày
+        function updateSelects() {
+            var from = document.getElementById('FromDate').value;
+            var to = document.getElementById('ToDate').value;
+            var fromGroup = document.getElementById('from-date-type-group');
+            var toGroup = document.getElementById('to-date-type-group');
+            if (from && to && from === to) {
+                fromGroup.style.display = 'block';
+                toGroup.style.display = 'none';
+            } else if (from && to && from < to) {
+                fromGroup.style.display = 'block';
+                toGroup.style.display = 'block';
+            } else {
+                fromGroup.style.display = 'block';
+                toGroup.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('FromDate').addEventListener('change', updateSelects);
+            document.getElementById('ToDate').addEventListener('change', updateSelects);
+            updateSelects();
+        });
+    </script>
+}

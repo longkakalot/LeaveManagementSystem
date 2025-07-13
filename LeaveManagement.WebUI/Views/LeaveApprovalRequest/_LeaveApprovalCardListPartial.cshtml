@@ -1,0 +1,132 @@
+﻿@model LeaveManagement.WebUI.ViewModels.LeaveApprovalTabViewModel
+@using LeaveManagement.Domain.Enums
+@using LeaveManagement.WebUI.ViewModels
+
+@{
+    List<LeaveApprovalRequestDto> displayList = Model.CurrentTab switch
+    {
+        "Pending" => Model.Pending,
+        "Approved" => Model.Approved,
+        "Rejected" => Model.Rejected,
+        _ => Model.Pending
+    };
+    int totalItems = Model.CurrentTab switch
+    {
+        "Pending" => Model.PendingTotal,
+        "Approved" => Model.ApprovedTotal,
+        "Rejected" => Model.RejectedTotal,
+        _ => Model.PendingTotal
+    };
+    int totalPages = (int)Math.Ceiling((double)totalItems / Model.PageSize);
+    int pageIndex = Model.PageIndex;
+    string currentTab = Model.CurrentTab!;
+}
+
+@if (displayList == null || !displayList.Any())
+{
+    <div class="alert alert-info text-center my-5">
+        <i class="bi bi-info-circle"></i> Không có đơn nào.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var item in displayList)
+        {
+            <div class="col-12 col-md-6">
+                <div class="card border-primary border-2 shadow-sm h-100 rounded-4">
+                    <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center rounded-top-4">
+                        <div>
+                            <span class="fw-bold text-primary">
+                                @item.FromDate.ToString("dd/MM/yyyy") - @item.ToDate.ToString("dd/MM/yyyy")
+                            </span>
+                            <span class="fw-bold text-primary">
+                                (Số ngày nghỉ: @item.TotalLeaveDays)
+                            </span>
+                            <span class="badge bg-info ms-2">
+                                @item.StepApprove/@item.StepOrder
+                            </span>
+                        </div>
+                        <span class="badge
+                            @(item.Status == LeaveApprovalStatus.Pending ? "bg-secondary" :
+                              item.Status == LeaveApprovalStatus.Approved ? "bg-success" :
+                              item.Status == LeaveApprovalStatus.Rejected ? "bg-danger" : "bg-light text-dark")">
+                            @item.Status
+                        </span>
+                    </div>
+                    <div class="card-body pt-3 pb-2 px-3">
+                        <div class="mb-2"><strong>Người gửi:</strong> @item.RequesterName</div>
+                        <div class="mb-2"><strong>Khoa/Phòng:</strong> @item.TenPhongBan</div>
+                        <div class="mb-2"><strong>Lý do:</strong> @item.Reason</div>
+                        <div class="mb-2"><i class="bi bi-geo-alt"></i> <strong>Nơi nghỉ:</strong> @item.VacationPlace</div>
+                        <div class="mb-2"><i class="bi bi-bookmark-star"></i> <strong>Mã đơn:</strong> @item.LeaveRequestId</div>
+                    </div>
+                    <div class="card-footer bg-white border-0 py-2 px-3 rounded-bottom-4">
+                        <div class="d-flex gap-2">
+                            @if (item.Status == LeaveApprovalStatus.Pending)
+                            {
+                                <form asp-action="Approve" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="btn btn-success btn-sm px-3" type="submit">
+                                        <i class="bi bi-check-circle me-1"></i> Duyệt
+                                    </button>
+                                </form>
+                                <form asp-action="Reject" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn từ chối đơn này?');">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="btn btn-danger btn-sm px-3" type="submit">
+                                        <i class="bi bi-x-circle me-1"></i> Từ chối
+                                    </button>
+                                </form>
+                            }
+                            @if (item.Status == LeaveApprovalStatus.Approved)
+                            {
+                                <form asp-action="Cancel" method="post" class="d-inline" onsubmit="return confirm('Bạn muốn hủy duyệt đơn này?');">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="btn btn-warning btn-sm px-3" type="submit">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Hủy duyệt
+                                    </button>
+                                </form>
+                            }
+                            @if (item.Status == LeaveApprovalStatus.Rejected)
+                            {
+                                <form asp-action="Approve" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="btn btn-success btn-sm px-3" type="submit">
+                                        <i class="bi bi-check-circle me-1"></i> Duyệt lại
+                                    </button>
+                                </form>
+                                <form asp-action="Cancel" method="post" class="d-inline" onsubmit="return confirm('Bạn muốn hủy duyệt đơn này?');">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="btn btn-warning btn-sm px-3" type="submit">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Hủy duyệt
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Phân trang -->
+    @if (totalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == pageIndex ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-tab="@currentTab"
+                           asp-route-page="@i"
+                           asp-route-pageSize="@Model.PageSize">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

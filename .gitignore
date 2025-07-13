@@ -1,0 +1,25 @@
+# Build results
+bin/
+obj/
+*.user
+*.vspscc
+*.vssscc
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Publish output
+publish/
+wwwroot/lib/
+node_modules/
+.env
+
+# Rider, VSCode, Jetbrains, etc
+.idea/
+.vscode/
+*.code-workspace

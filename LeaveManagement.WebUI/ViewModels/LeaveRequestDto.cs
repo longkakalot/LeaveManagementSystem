@@ -1,0 +1,32 @@
+﻿using LeaveManagement.Domain.Enums;
+
+namespace LeaveManagement.WebUI.ViewModels
+{
+    public class LeaveRequestDto
+    {
+        public int UserId { get; set; }
+        public string? FullName { get; set; }
+        public string? UserName { get; set; }
+        public int Id { get; set; }
+        public string? MaChucVu { get; set; }
+        public string? MaPhongBan { get; set; }
+        public string? TenPhongBan { get; set; }
+        public int LeaveTypeId { get; set; }
+        public string LeaveTypeName { get; set; } = string.Empty;
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public string? FromDateType { get; set; } // "Full", "Morning", "Afternoon"
+        public string? ToDateType { get; set; }   // "Full", "Morning", "Afternoon"
+
+        public double TotalLeaveDays { get; set; }
+        public string Reason { get; set; } = string.Empty;
+        public string VacationPlace { get; set; } = string.Empty;
+
+        public LeaveStatus Status { get; set; }
+        // ✅ Hiển thị tên trạng thái từ enum
+        public string? StatusLabel { get; set; }
+        public int StepOrder { get; set; }
+        public int StepApprove { get; set; }
+        public LeaveApprovalStatus ApproveStatus { get; set; }
+    }
+}

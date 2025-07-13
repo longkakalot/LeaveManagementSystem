@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ - Quản lý nghỉ phép";
+    var isAuthenticated = User.Identity != null && User.Identity.IsAuthenticated;
+}
+<div class="container py-5">
+    <div class="row justify-content-center align-items-center" style="min-height:70vh;">
+        <div class="col-lg-6 text-center">
+            <img src="~/img/logoSmall.png" class="mb-4" style="max-height:90px;" alt="Logo Hệ thống" />
+            <h1 class="display-5 fw-bold text-primary mb-3">Quản lý Nghỉ phép</h1>
+            @if (!isAuthenticated)
+            {
+                <p class="lead mb-4">
+                    Chào mừng bạn đến với hệ thống Quản lý Nghỉ phép.<br />
+                    Vui lòng <b>đăng nhập</b> để sử dụng các chức năng của hệ thống.
+                </p>
+                <a class="btn btn-primary btn-lg px-5" asp-controller="Account" asp-action="Login">
+                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                </a>
+            }
+            else
+            {
+                <h4 class="mb-4">Chào mừng <span class="text-success fw-bold">@User.Identity!.Name</span> trở lại!</h4>
+                <!-- Thêm dashboard cá nhân ở đây -->
+            }
+        </div>
+    </div>
+</div>

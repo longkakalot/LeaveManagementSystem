@@ -1,0 +1,35 @@
+﻿@model LeaveManagement.WebUI.ViewModels.LeaveApprovalTabViewModel
+@using LeaveManagement.Domain.Enums
+
+<div class="container px-1 px-md-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+        <h3 class="fw-bold text-primary mb-0">
+            <i class="bi bi-hourglass-split me-2"></i> Danh sách đơn cần duyệt
+        </h3>
+    </div>
+    <ul class="nav nav-tabs mb-3" id="approvalTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(Model.CurrentTab == "Pending" ? "active" : "")"
+               href="@Url.Action("Index", new { tab = "Pending", page = 1 })">
+                Chờ duyệt <span class="badge bg-secondary">@Model.PendingTotal</span>
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(Model.CurrentTab == "Approved" ? "active" : "")"
+               href="@Url.Action("Index", new { tab = "Approved", page = 1 })">
+                Đã duyệt <span class="badge bg-success">@Model.ApprovedTotal</span>
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(Model.CurrentTab == "Rejected" ? "active" : "")"
+               href="@Url.Action("Index", new { tab = "Rejected", page = 1 })">
+                Từ chối <span class="badge bg-danger">@Model.RejectedTotal</span>
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content" id="approvalTabContent">
+        <div class="tab-pane fade show active">
+            @await Html.PartialAsync("_LeaveApprovalCardListPartial", Model)
+        </div>
+    </div>
+</div>

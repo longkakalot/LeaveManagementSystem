@@ -1,0 +1,56 @@
+﻿@model LeaveManagement.WebUI.ViewModels.AccountViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập hệ thống";
+}
+
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 85vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow rounded-4">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">Đăng nhập</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Login" asp-controller="Account" method="post" autocomplete="off">
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label fw-bold">Tài khoản</label>
+                        <input asp-for="Username" class="form-control" placeholder="Tên đăng nhập" id="usernameInput" autocomplete="username" autofocus />
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-bold">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" autocomplete="current-password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger py-2">
+                            @Html.ValidationSummary(false)
+                        </div>
+                    }
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Tự động focus vào ô username khi vào trang
+        document.addEventListener("DOMContentLoaded", function () {
+            var usernameInput = document.getElementById("usernameInput");
+            if (usernameInput) usernameInput.focus();
+        });
+    </script>
+}
