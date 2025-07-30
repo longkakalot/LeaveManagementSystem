@@ -49,6 +49,42 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
         {
             try
             {
+                #region Delete đơn
+                double soNgayNghiDonEdit = 0.0;
+
+                var leaveRequest = await _unitOfWork.LeaveRequests.GetByIdAsync(request.Id);
+                if (leaveRequest == null ||
+                    (leaveRequest.Status != LeaveStatus.Pending && leaveRequest.Status != LeaveStatus.Submitted))
+                {
+                    return ServiceResult.Failed("Chỉ được chỉnh sửa đơn khi ở trạng thái Chờ duyệt hoặc Đã gửi duyệt!");
+                }
+
+                // Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
+                var leaveDetails = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
+
+                // Trả lại phép cho từng dòng detail
+                foreach (var detail in leaveDetails)
+                {
+                    soNgayNghiDonEdit += detail.Value;
+                    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
+                    {
+                        UserId = leaveRequest.UserId,
+                        Year = detail.Year,
+                        DaysToReturn = detail.Value
+                    });
+                    if (!result)
+                    {
+                        _unitOfWork.Rollback();
+                        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
+                    }
+                }
+
+                // Xóa toàn bộ dòng detail (nếu chưa dùng ON DELETE CASCADE, gọi repo xóa detail trước, nếu đã ON DELETE CASCADE, chỉ cần xóa master)                
+                // Xóa master (LeaveRequest)
+                var sucessDelete = await _unitOfWork.LeaveRequests.DeleteAsync(request.Id);
+
+                #endregion Delete Đơn
+
                 #region Kiểm tra ngày trùng
                 int userId = request.UserId;
                 int yearNew = 0;         // Năm của kỳ nghỉ (thường là năm mới)
@@ -109,41 +145,11 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
 
                 #endregion Kiểm tra ngày trùng
 
-                #region Delete đơn
-                var leaveRequest = await _unitOfWork.LeaveRequests.GetByIdAsync(request.Id);
-                if (leaveRequest == null ||
-                    (leaveRequest.Status != LeaveStatus.Pending && leaveRequest.Status != LeaveStatus.Submitted))
-                {
-                    return ServiceResult.Failed("Chỉ được chỉnh sửa đơn khi ở trạng thái Chờ duyệt hoặc Đã gửi duyệt!");
-                }
-
-
-                // Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
-                var leaveDetails = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
-
-                // Trả lại phép cho từng dòng detail
-                foreach (var detail in leaveDetails)
-                {
-                    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
-                    {
-                        UserId = leaveRequest.UserId,
-                        Year = detail.Year,
-                        DaysToReturn = detail.Value
-                    });
-                    if (!result)
-                    {
-                        _unitOfWork.Rollback();
-                        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
-                    }
-                }
-
-                // Xóa toàn bộ dòng detail (nếu chưa dùng ON DELETE CASCADE, gọi repo xóa detail trước, nếu đã ON DELETE CASCADE, chỉ cần xóa master)                
-                // Xóa master (LeaveRequest)
-                var sucessDelete = await _unitOfWork.LeaveRequests.DeleteAsync(request.Id);
-
-                #endregion Delete Đơn
-
                 #region Tạo đơn mới                
+
+
+
+
 
                 //var trungNgay = newLeaveDates.Where(x => allUserDates.Contains(x)).ToList();
                 //if (trungNgay.Any())
@@ -165,7 +171,7 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                     double value = period == "FullDay" ? 1.0 : (period == "Morning" || period == "Afternoon" ? 0.5 : 0);
 
                     //Nếu ngày nghỉ bắc cầu, trong đó ngày FromDate <=31/12 thì sẽ kiểm tra còn đủ ngày nghỉ không?
-                    if (date <= lastYearDate && phepConNamCu < value)
+                    if (date <= lastYearDate && (phepConNamCu + soNgayNghiDonEdit) < value)
                     {
                         return ServiceResult.Failed($"Phép năm {yearOld} của bạn không đủ để xin nghỉ {totalLeaveDays} ngày.");
                     }
