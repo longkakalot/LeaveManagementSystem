@@ -162,6 +162,20 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                     compensateDays
                 );
 
+                foreach (var item in allUserDates)
+                {
+                    if(request.FromDate == item.Date && item.Period == "FullDay")
+                    {
+                        return ServiceResult.Failed("Ngày " + string.Join(", ", request.FromDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
+
+                    }
+                    if (request.ToDate == item.Date && item.Period == "FullDay")
+                    {
+                        return ServiceResult.Failed("Ngày " + string.Join(", ", request.ToDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
+
+                    }
+                }
+
                 var trungNgay = newLeaveDates.Where(x => allUserDates.Contains(x)).ToList();
                 if (trungNgay.Any())
                 {
