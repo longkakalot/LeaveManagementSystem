@@ -112,6 +112,8 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
         {
             try
             {
+                
+
                 int userId = request.UserId;
                 int yearNew = 0;         // Năm của kỳ nghỉ (thường là năm mới)
                 int yearOld = 0;                   // Năm trước kỳ nghỉ (năm cũ)

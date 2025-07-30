@@ -28,6 +28,13 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Queries.ValidateLea
 
         public async Task<ServiceResult> Handle(ValidateLeaveRequest request, CancellationToken cancellationToken)
         {
+            //Kiểm tra FromDate và ToDate có hợp lệ không
+            if (request.FromDate < DateTime.Now || request.ToDate < DateTime.Now || request.FromDate > request.ToDate)
+            {
+                return ServiceResult.Failed("Ngày xin nghỉ không hợp lệ");
+            }
+
+
             // Lấy ngày lễ/ngày làm bù trong khoảng ngày xin nghỉ
             var holidays = await _unitOfWork.LeaveRequests.GetAllHolidaysAsync(request.FromDate, request.ToDate);
             var compensateDays = await _unitOfWork.LeaveRequests.GetAllCompensateDayAsync(request.FromDate, request.ToDate);
