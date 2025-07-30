@@ -29,8 +29,8 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Queries.ValidateLea
         public async Task<ServiceResult> Handle(ValidateLeaveRequest request, CancellationToken cancellationToken)
         {
             // Lấy ngày lễ/ngày làm bù trong khoảng ngày xin nghỉ
-            var holidays = await _unitOfWork.Holidays.GetHolidaysInRange(request.FromDate, request.ToDate);
-            var compensateDays = await _unitOfWork.CompensateWorkingDays.GetCompensateDaysInRange(request.FromDate, request.ToDate);
+            var holidays = await _unitOfWork.LeaveRequests.GetAllHolidaysAsync(request.FromDate, request.ToDate);
+            var compensateDays = await _unitOfWork.LeaveRequests.GetAllCompensateDayAsync(request.FromDate, request.ToDate);
 
             // Check có ít nhất 1 ngày làm việc thực sự không
 

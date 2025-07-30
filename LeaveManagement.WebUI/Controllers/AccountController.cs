@@ -60,7 +60,7 @@ namespace LeaveManagement.WebUI.Controllers
                     Console.WriteLine("✅ Redirecting to: " + returnUrl);
                     return LocalRedirect(returnUrl);
                 }               
-                _logger.LogInformation("❌ Invalid or missing returnUrl");
+                _logger.LogInformation("❌ Invalid or missing returnUrl");               
 
                 return RedirectToAction("Index", "Home");
             }

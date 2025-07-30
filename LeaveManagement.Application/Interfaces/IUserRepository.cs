@@ -16,6 +16,8 @@ namespace LeaveManagement.Application.Interfaces
         Task<IList<User>> FindApproverAsyncByMaChucVu(string maChucVu);
         Task<User?> LoginAsync(string username, string hashedPassword);
 
+        Task<User?> GetTotalLeaveDaysByUserIdAndYear(int userId, int year);
+
         // Có thể thêm tìm kiếm nâng cao hơn nếu workflow cần
     }
 

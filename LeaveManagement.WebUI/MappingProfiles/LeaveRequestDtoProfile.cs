@@ -18,6 +18,13 @@ namespace LeaveManagement.WebUI.MappingProfiles
             // Map app DTO sang web ViewModel
             CreateMap<Application.DTOs.LeaveApprovalRequestDto, ViewModels.LeaveApprovalRequestDto>().ReverseMap();
 
+            CreateMap<Application.Features.LeaveRequests.Commands.EditLeaveRequest.EditLeaveRequestCommand, ViewModels.LeaveRequestDto>().ReverseMap(); // 2 chiều
+
+            // Mapping từ App DTO -> UI ViewModel
+            CreateMap<Application.DTOs.LeaveRequestDetailDto, WebUI.ViewModels.LeaveRequestDetailDto>();
+            CreateMap<Application.DTOs.LeaveRequestDto, WebUI.ViewModels.LeaveRequestDto>()
+                .ForMember(dest => dest.Details, opt => opt.MapFrom(src => src.Details));
+
 
         }
     }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LeaveManagement.Application.DTOs;
+using LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveRequest;
 using LeaveManagement.Domain.Entities;
 using LeaveManagement.Domain.Enums;
 using System;
@@ -17,6 +18,14 @@ namespace LeaveManagement.Application.Mapping
         {
             CreateMap<LeaveRequest, LeaveRequestDto>()
                 .ForMember(dest => dest.StatusLabel, opt => opt.MapFrom(src => GetStatusLabel(Convert.ToInt32(src.Status))));
+
+            // Map LeaveRequestDetail → LeaveRequestDetailDto
+            CreateMap<LeaveRequestDetail, DTOs.LeaveRequestDetailDto>();
+
+            // Map LeaveRequest → LeaveRequestDto
+            CreateMap<LeaveRequest, LeaveRequestDto>()
+                .ForMember(dest => dest.Details, opt => opt.MapFrom(src => src.Details));
+
         }
 
         private static string GetStatusLabel(int status)

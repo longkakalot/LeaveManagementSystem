@@ -33,6 +33,8 @@ else
     <div class="row g-4">
         @foreach (var item in displayList)
         {
+            var collapseId = $"details-{item.Id}";
+            //var showCollapse = false;
             <div class="col-12 col-md-6">
                 <div class="card border-primary border-2 shadow-sm h-100 rounded-4">
                     <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center rounded-top-4">
@@ -54,12 +56,122 @@ else
                             @item.Status
                         </span>
                     </div>
-                    <div class="card-body pt-3 pb-2 px-3">
+                    <div class="card-body pt-3 pb-2 px-3 d-flex flex-column">
                         <div class="mb-2"><strong>Người gửi:</strong> @item.RequesterName</div>
                         <div class="mb-2"><strong>Khoa/Phòng:</strong> @item.TenPhongBan</div>
                         <div class="mb-2"><strong>Lý do:</strong> @item.Reason</div>
                         <div class="mb-2"><i class="bi bi-geo-alt"></i> <strong>Nơi nghỉ:</strong> @item.VacationPlace</div>
                         <div class="mb-2"><i class="bi bi-bookmark-star"></i> <strong>Mã đơn:</strong> @item.LeaveRequestId</div>
+
+                        <!-- Bảng chi tiết ngày nghỉ -->
+                        @if (item.Details != null && item.Details.Any())
+                        {
+                            var firstTwo = item.Details.Take(2).ToList();
+                            var moreCount = item.Details.Count - 2;
+                            <div class="table-responsive mt-3">
+                                <table class="table table-bordered table-sm mb-0 shadow-sm">
+                                    <thead class="table-light text-center align-middle">
+                                        <tr>
+                                            <th class="small">#</th>
+                                            <th class="small">Ngày nghỉ</th>
+                                            <th class="small">Buổi</th>
+                                            <th class="small">Giá trị</th>
+                                            <th class="small">Năm tính phép</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < firstTwo.Count; i++)
+                                        {
+                                            var d = firstTwo[i];
+                                            <tr class="align-middle">
+                                                <td class="text-center">@(@i + 1)</td>
+                                                <td class="text-center">@d.Date.ToString("dd/MM/yyyy")</td>
+                                                <td class="text-center">
+                                                    @if (d.Period == "FullDay")
+                                                    {
+                                                        <span class="badge bg-success">Nguyên ngày</span>
+                                                    }
+                                                    else if (d.Period == "Morning")
+                                                    {
+                                                        <span class="badge bg-primary">Sáng</span>
+                                                    }
+                                                    else if (d.Period == "Afternoon")
+                                                    {
+                                                        <span class="badge bg-warning text-dark">Chiều</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">@d.Value.ToString("0.##")</td>
+                                                <td class="text-center">@d.Year</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            @if (moreCount > 0)
+                            {
+                                <div class="text-end mt-2">
+                                    <a class="btn btn-link btn-sm px-0 text-primary" data-bs-toggle="collapse" href="#@collapseId" role="button" aria-expanded="false" aria-controls="@collapseId">
+                                        <span class="toggle-label">Xem chi tiết</span> <i class="bi bi-chevron-down"></i>
+                                    </a>
+                                </div>
+                                <div class="collapse mt-2" id="@collapseId">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-0 shadow-sm">
+                                            <tbody>
+                                                @for (int i = 2; i < item.Details.Count; i++)
+                                                {
+                                                    var d = item.Details[i];
+                                                    <tr class="align-middle">
+                                                        <td class="text-center">@(@i + 1)</td>
+                                                        <td class="text-center">@d.Date.ToString("dd/MM/yyyy")</td>
+                                                        <td class="text-center">
+                                                            @if (d.Period == "FullDay")
+                                                            {
+                                                                <span class="badge bg-success">Nguyên ngày</span>
+                                                            }
+                                                            else if (d.Period == "Morning")
+                                                            {
+                                                                <span class="badge bg-primary">Sáng</span>
+                                                            }
+                                                            else if (d.Period == "Afternoon")
+                                                            {
+                                                                <span class="badge bg-warning text-dark">Chiều</span>
+                                                            }
+                                                        </td>
+                                                        <td class="text-center">@d.Value.ToString("0.##")</td>
+                                                        <td class="text-center">@d.Year</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <script>
+                                    // Đổi icon/label khi mở/đóng collapse
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        var toggle = document.querySelector('[href="#@collapseId"]');
+                                        var collapse = document.getElementById('@collapseId');
+                                        if (toggle && collapse) {
+                                            collapse.addEventListener('show.bs.collapse', function () {
+                                                toggle.querySelector('.toggle-label').innerText = 'Thu gọn';
+                                                toggle.querySelector('i').classList.remove('bi-chevron-down');
+                                                toggle.querySelector('i').classList.add('bi-chevron-up');
+                                            });
+                                            collapse.addEventListener('hide.bs.collapse', function () {
+                                                toggle.querySelector('.toggle-label').innerText = 'Xem chi tiết';
+                                                toggle.querySelector('i').classList.remove('bi-chevron-up');
+                                                toggle.querySelector('i').classList.add('bi-chevron-down');
+                                            });
+                                        }
+                                    });
+                                </script>
+                            }
+                        }
+                        else
+                        {
+                            <div class="alert alert-light small mt-3">Không có chi tiết ngày nghỉ</div>
+                        }
                     </div>
                     <div class="card-footer bg-white border-0 py-2 px-3 rounded-bottom-4">
                         <div class="d-flex gap-2">

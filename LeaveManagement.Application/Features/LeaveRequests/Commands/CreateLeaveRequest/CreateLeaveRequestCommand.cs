@@ -21,7 +21,6 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
         public int LeaveTypeId { get; set; }
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
-
         public string? FromDateType { get; set; }
         public string? ToDateType { get; set; }
         public string Reason { get; set; } = string.Empty;
@@ -29,6 +28,7 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
         public int NgayPhepCongThem { get; set; }
         public int SoNgayNghiCoBan { get; set; }
         public int SoNgayPhepNam { get; set; }
+        public int SoNgayPhepNamMoi { get; set; }
         public double TotalLeaveDays { get; set; }
 
     }

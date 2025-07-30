@@ -32,6 +32,22 @@ namespace LeaveManagement.Domain.Entities
         public int StepOrder { get; set; }
         public int StepApprove { get; set; }
         public LeaveApprovalStatus ApproveStatus { get; set; }
-                
+
+        public List<LeaveRequestDetailDto> Details { get; set; } = new();
+
+        public DateTime Date { get; set; }
+        public string? Period { get; set; }
+        public double Value { get; set; }
+        public int YearDetail { get; set; }
+
     }
+    public class LeaveRequestDetailDto
+    {
+        public DateTime Date { get; set; }
+        public string? Period { get; set; } // "FullDay", "Morning", "Afternoon"
+        public double Value { get; set; }  // 1.0, 0.5
+        public int YearDetail { get; set; }
+    }
+
+
 }

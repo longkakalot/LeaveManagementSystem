@@ -1,4 +1,5 @@
 ﻿using LeaveManagement.Application.Interfaces;
+using LeaveManagement.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -33,8 +34,8 @@ namespace LeaveManagement.Infrastructure.Repositories
         public IUserRepository Users { get; }
         public IHolidayRepository Holidays { get; }
         public ICompensateWorkingDayRepository CompensateWorkingDays { get; }
-
-
+        public IUserLeaveBalanceRepository UserLeaveBalances { get; }
+        public ILeaveRequestDetailRepository LeaveRequestDetails { get; }
         public IApproverService ApproverService => throw new NotImplementedException();
 
         // ... các repo khác
@@ -57,7 +58,9 @@ namespace LeaveManagement.Infrastructure.Repositories
             LeaveTypes = new LeaveTypeRepository(_connection, _transaction);
             Users = new UserRepository(_connection, _transaction);
             Holidays = new HolidayRepository(_connection, _transaction);
+            UserLeaveBalances = new UserLeaveBalanceRepository(_connection, _transaction);
             CompensateWorkingDays = new CompensateWorkingDayRepository(_connection, _transaction);
+            LeaveRequestDetails = new LeaveRequestDetailRepository(_connection, _transaction);
             // ... các repo khác
         }
 

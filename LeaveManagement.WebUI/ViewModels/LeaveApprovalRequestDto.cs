@@ -26,6 +26,8 @@ namespace LeaveManagement.WebUI.ViewModels
         public DateTime ToDate { get; set; }
         public double TotalLeaveDays { get; set; }
         public string Reason { get; set; } = string.Empty;
+        
+        public List<LeaveRequestDetailDto> Details { get; set; } = new();
     }
 
 }

@@ -30,22 +30,6 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IApproverService, ApproverService>();
-//builder.Services.AddScoped<IHolidayRepository, HolidayRepository>();
-//builder.Services.AddScoped<ICompensateWorkingDayRepository, CompensateWorkingDayRepository>();
-
-
-//builder.Services.AddScoped<DapperDbContext>();
-//builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
-//builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-//builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-//builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-//builder.Services.AddScoped<ILeaveTypeRepository, LeaveTypeRepository>();
-//builder.Services.AddScoped<ILeaveApprovalRequestRepository, LeaveApprovalRequestRepository>();
-//builder.Services.AddScoped<ILeaveApprovalRequestRepository, LeaveApprovalRequestRepository>();
-//builder.Services.AddScoped<IApprovalGroupRepository, ApprovalGroupRepository>();
-//builder.Services.AddScoped<IApprovalStepRepository, ApprovalStepRepository>();
-//builder.Services.AddScoped<IUserRepository, UserRepository>();
-//builder.Services.AddScoped<IApproverService, ApproverService>();
 
 // UnitOfWork, connection factory
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

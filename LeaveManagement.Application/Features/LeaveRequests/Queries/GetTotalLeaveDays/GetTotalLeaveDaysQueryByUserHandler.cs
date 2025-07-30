@@ -1,4 +1,5 @@
-﻿using LeaveManagement.Application.Common;
+﻿using AutoMapper;
+using LeaveManagement.Application.Common;
 using LeaveManagement.Application.Features.LeaveRequests.Commands.ApproveLeaveRequest;
 using LeaveManagement.Application.Interfaces;
 using MediatR;
@@ -10,15 +11,17 @@ using System.Threading.Tasks;
 
 namespace LeaveManagement.Application.Features.LeaveRequests.Queries.GetTotalLeaveDays
 {
-    public class GetTotalLeaveDaysQueryByUserHandler : IRequestHandler<GetTotalLeaveDaysQueryByUser, double>
+    public class GetTotalLeaveDaysByUserIdAndYearHandler : IRequestHandler<GetTotalLeaveDaysQueryByUser, double>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMapper _mapper;
 
-        public GetTotalLeaveDaysQueryByUserHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public GetTotalLeaveDaysByUserIdAndYearHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _mapper = mapper;
         }
         public async Task<double> Handle(GetTotalLeaveDaysQueryByUser request, CancellationToken cancellationToken)
         {

@@ -9,28 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LeaveManagement.Application.Features.LeaveRequests.Queries.GetLeaveTypes
-{
-    //public class GetLeaveTypesQueryHandler : IRequestHandler<GetLeaveTypesQuery, List<LeaveType>>
-    //{
-    //    private readonly ILeaveTypeRepository _leaveTypeRepository;
-
-    //    public GetLeaveTypesQueryHandler(ILeaveTypeRepository leaveTypeRepository)
-    //    {
-    //        _leaveTypeRepository = leaveTypeRepository;
-    //    }
-
-    //    public async Task<List<LeaveType>> Handle(GetLeaveTypesQuery request, CancellationToken cancellationToken)
-    //    {
-    //        var leaveTypes = await _leaveTypeRepository.GetAllAsync();
-    //        var result = leaveTypes.Select(lt => new LeaveType
-    //        {
-    //            Id = lt.Id,
-    //            Name = lt.Name
-    //        }).ToList();
-
-    //        return result;
-    //    }       
-    //}
+{   
 
     public class GetLeaveTypesQueryHandler : IRequestHandler<GetLeaveTypesQuery, List<LeaveType>>
     {

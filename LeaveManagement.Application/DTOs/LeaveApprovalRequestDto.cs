@@ -32,8 +32,16 @@ namespace LeaveManagement.Application.DTOs
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
         public string Reason { get; set; } = string.Empty;
-        public double TotalLeaveDays { get; set; }
 
+        public double TotalLeaveDays { get; set; }
+        public List<LeaveRequestDetailDto> Details { get; set; } = new();
     }
+    //public class LeaveRequestDetailDto1
+    //{
+    //    public DateTime Date { get; set; }
+    //    public string? Period { get; set; } // "FullDay", "Morning", "Afternoon"
+    //    public double Value { get; set; }  // 1.0, 0.5
+    //    public int Year { get; set; }
+    //}
 
 }

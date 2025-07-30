@@ -13,124 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LeaveManagement.Application.Features.LeaveRequests.Commands.SubmitLeaveRequest
-{
-    //public class SubmitLeaveRequestCommandHandler : IRequestHandler<SubmitLeaveRequestCommand, ServiceResult>
-    //{
-    //    private readonly ILeaveRequestRepository _leaveRequestRepo;
-    //    private readonly IUserRepository _userRepo;
-    //    private readonly IApprovalGroupRepository _groupRepo;
-    //    private readonly IApprovalStepRepository _stepRepo;
-    //    private readonly ILeaveApprovalRequestRepository _approvalRequestRepo;
-    //    private readonly IUnitOfWork _unitOfWork;
-    //    private readonly ICurrentUserService _currentUserService;
-
-    //    public SubmitLeaveRequestCommandHandler(
-    //        ILeaveRequestRepository leaveRequestRepo,
-    //        IUserRepository userRepo,
-    //        IApprovalGroupRepository groupRepo,
-    //        IApprovalStepRepository stepRepo,
-    //        ILeaveApprovalRequestRepository approvalRequestRepo,
-    //        IUnitOfWork unitOfWork,
-    //        ICurrentUserService currentUserService)
-    //    {
-    //        _leaveRequestRepo = leaveRequestRepo;
-    //        _userRepo = userRepo;
-    //        _groupRepo = groupRepo;
-    //        _stepRepo = stepRepo;
-    //        _approvalRequestRepo = approvalRequestRepo;
-    //        _unitOfWork = unitOfWork;
-    //        _currentUserService = currentUserService;
-    //    }
-
-    //    public async Task<ServiceResult> Handle(SubmitLeaveRequestCommand request, CancellationToken cancellationToken)
-    //    {
-    //        // 1. Kiểm tra đơn nghỉ phép
-    //        var leaveRequest = await _leaveRequestRepo.GetByIdAsync(request.LeaveRequestId);
-    //        if (leaveRequest == null || leaveRequest.Status != LeaveStatus.Pending)
-    //            return ServiceResult.Failed("Đơn không hợp lệ.");
-
-    //        // 2. Lấy user gửi đơn
-    //        //var user = await _userRepo.GetByIdAsync(leaveRequest.UserId);
-    //        var user = _currentUserService.UserId.ToString();
-    //        if (user == null) return ServiceResult.Failed("Không tìm thấy người gửi đơn.");
-
-    //        // 3. Tính số ngày nghỉ
-    //        var days = (leaveRequest.ToDate - leaveRequest.FromDate).Days + 1;
-
-    //        //lấy maChucVu
-    //        var maChucVu = _currentUserService.MaChucVu;
-    //        var maPhongBan = _currentUserService.MaPhongBan;
-
-    //        //4. lấy workflow duyệt
-    //        var steps = await _stepRepo.GetStepsByGroupAsync(maChucVu, days);
-    //        if (steps == null || steps.Count == 0)
-    //            return ServiceResult.Failed("Chưa cấu hình các bước duyệt.");            
-
-    //        // 6. Xác định người duyệt Step đầu
-    //        var firstStep = steps.OrderBy(s => s.StepOrder).First();
-
-    //        var approvalRole = firstStep.ApproverRole;
-
-    //        //Tạo list user người duyệt
-    //        var userApprover = new List<User>();            
-
-    //        if(approvalRole == "GD,PGD")
-    //        {
-    //            userApprover = (await _userRepo.FindApproverAsyncByMaChucVu(approvalRole)).ToList();               
-
-    //        }
-    //        else
-    //        {
-    //            userApprover = (await _userRepo.FindApproverAsync(approvalRole, maPhongBan)).ToList();
-    //        }
-
-
-    //        var userIds = "";
-
-    //        foreach (var userId in userApprover) {
-    //            userIds += userId.UserId.ToString() + ",";  
-    //        }
-
-
-    //        //var approvalRoles = string[];
-    //        //if (approvalRole.Contains(','))
-    //        //{
-    //        //    var abc = approvalRole.Split(',');
-
-    //        //}
-
-    //        //var approver = await _userRepo.FindApproverAsync(firstStep.ApproverRole, user.MaPhongBan);
-    //        if (userApprover == null)
-    //            return ServiceResult.Failed("Không tìm thấy người duyệt.");
-
-    //        // 7. Tạo LeaveApprovalRequest cho Step đầu tiên
-
-    //        var approvalRequest = new LeaveApprovalRequest
-    //        {
-    //            LeaveRequestId = leaveRequest.Id,
-    //            StepOrder = firstStep.StepOrder,
-    //            ApproverRole = firstStep.ApproverRole,
-    //            ApproverUserIds = userIds,
-    //            Status = LeaveApprovalStatus.Pending,
-    //            CreatedAt = DateTime.Now
-    //        };
-    //        await _approvalRequestRepo.AddAsync(approvalRequest);
-
-
-
-    //        // 8. Update trạng thái LeaveRequest            
-    //        leaveRequest.Status = LeaveStatus.Submitted;
-    //        await _leaveRequestRepo.UpdateStatusAsync(leaveRequest);
-
-    //        // 9. Lưu transaction (UnitOfWork)
-    //        await _unitOfWork.CommitAsync();
-
-    //        // 10. (Optional) Gửi thông báo cho approver
-
-    //        return ServiceResult.SuccessResult();
-    //    }
-    //}    
-
+{    
     public class SubmitLeaveRequestCommandHandler : IRequestHandler<SubmitLeaveRequestCommand, ServiceResult>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -166,8 +49,8 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.SubmitLeav
                 var fromDateType = leaveRequest.FromDateType;
                 var toDateType = leaveRequest.ToDateType;
 
-                var holidays = await _unitOfWork.Holidays.GetHolidaysInRange(fromDate, toDate);
-                var compensateDays = await _unitOfWork.CompensateWorkingDays.GetCompensateDaysInRange(fromDate, toDate);
+                var holidays = await _unitOfWork.LeaveRequests.GetAllHolidaysAsync(fromDate, toDate);
+                var compensateDays = await _unitOfWork.LeaveRequests.GetAllCompensateDayAsync(fromDate, toDate);
 
                 var days = WorkingDayCalculator.GetWorkingDays(
                     fromDate, toDate,

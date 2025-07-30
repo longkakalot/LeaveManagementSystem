@@ -36,19 +36,20 @@ namespace LeaveManagement.Domain.Entities
         public DateTime ToDate { get; set; }
         public string Reason { get; set; } = string.Empty;
         public double TotalLeaveDays { get; set; }
+        public List<LeaveRequestDetailDto> Details { get; set; } = new();
+        //public int DetailId { get; set; }
+        public DateTime Date { get; set; }
+        public string? Period { get; set; }
+        public double Value { get; set; }
+        public int YearDetail { get; set; }
     }
-
-
-
-    //public class LeaveApprovalRequest
+    //public class LeaveRequestDetailDto
     //{
-    //    public int Id { get; set; }
-    //    public int LeaveRequestId { get; set; }
-    //    public int ApproverId { get; set; }
-    //    public int Level { get; set; }
-    //    public LeaveApprovalStatus Status { get; set; } // Enum: Pending, Approved, Rejected
-    //    public string? Comments { get; set; }
-    //    public DateTime CreatedAt { get; set; }
+    //    public int DetailId { get; set; }
+    //    public DateTime DateDetail { get; set; }
+    //    public string? PeriodDetail { get; set; }
+    //    public double ValueDetail { get; set; }
+    //    public int YearDetail { get; set; }
     //}
 
 }

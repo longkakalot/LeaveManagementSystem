@@ -1,4 +1,5 @@
-﻿using LeaveManagement.Domain.Entities;
+﻿using LeaveManagement.Application.DTOs;
+using LeaveManagement.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,9 @@ namespace LeaveManagement.Application.Interfaces
         Task<bool> UpdateStatusAsync(LeaveRequest request);
         Task<bool> DeleteAsync(int id);
         Task<double> GetTotalLeaveDaysAsync(int userId, int year);
+        Task<List<DateTime>> GetAllHolidaysAsync(DateTime from, DateTime to);
+        Task<List<DateTime>> GetAllCompensateDayAsync(DateTime from, DateTime to);
+        Task<List<LeaveRequest>> GetAllByUserId(int userId);
 
     }
 }

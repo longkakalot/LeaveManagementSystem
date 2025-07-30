@@ -81,16 +81,16 @@
                                 <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">bắt đầu</span></label>
                                 <select asp-for="FromDateType" class="form-select">
                                     <option value="Full">Cả ngày</option>
-                                    <option value="Morning">Nửa buổi sáng</option>
-                                    <option value="Afternoon">Nửa buổi chiều</option>
+                                    <option value="Morning">Buổi sáng</option>
+                                    <option value="Afternoon">Buổi chiều</option>
                                 </select>
                             </div>
                             <div class="col-md-6" id="to-date-type-group">
                                 <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">kết thúc</span></label>
                                 <select asp-for="ToDateType" class="form-select">
                                     <option value="Full">Cả ngày</option>
-                                    <option value="Morning">Nửa buổi sáng</option>
-                                    <option value="Afternoon">Nửa buổi chiều</option>
+                                    <option value="Morning">Buổi sáng</option>
+                                    <option value="Afternoon">Buổi chiều</option>
                                 </select>
                             </div>
                         </div>
@@ -116,6 +116,13 @@
         </div>
     </div>
 </div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @Html.ValidationSummary(false)
+    </div>
+}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

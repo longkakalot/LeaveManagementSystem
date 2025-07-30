@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LeaveManagement.Application.Authentication.Dtos;
+using LeaveManagement.Application.DTOs;
 using LeaveManagement.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace LeaveManagement.Application.Mapping
         {
             // Map 2 chiều: User <-> UserDto
             CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<UserLeaveBalances, UserLeaveBalancesDto>().ReverseMap();
         }
     }
 }

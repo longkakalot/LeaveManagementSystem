@@ -1,0 +1,6 @@
+2025-07-16T08:14:24.4413412+07:00  [INF] Now listening on: "http://localhost:5274" (d826f4b8)
+2025-07-16T08:14:24.4607131+07:00  [INF] Application started. Press Ctrl+C to shut down. (dcaefe54)
+2025-07-16T08:14:24.4612110+07:00  [INF] Hosting environment: "Development" (bc5a1a4e)
+2025-07-16T08:14:24.4612666+07:00  [INF] Content root path: "E:\SourceCodeWebApp\2025\LeaveManagement\LeaveManagementSystem\LeaveManagement.WebUI" (cc26f24e)
+2025-07-16T08:15:47.6271189+07:00 0HNE40OD3MQM5:00000002 [INF] Đăng nhập thành công với user: "longnc", ReturnUrl = "/" (21a11489)
+2025-07-16T08:15:47.6286862+07:00 0HNE40OD3MQM5:00000002 [INF] ReturnUrl = "/" (a535d855)
