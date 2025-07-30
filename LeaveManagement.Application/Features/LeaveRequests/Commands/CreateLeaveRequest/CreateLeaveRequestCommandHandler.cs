@@ -162,25 +162,41 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                     compensateDays
                 );
 
-                foreach (var item in allUserDates)
+                foreach (var (date, period) in newLeaveDates) // newLeaveDates: List<(DateTime, string)>
                 {
-                    if(request.FromDate == item.Date && item.Period == "FullDay")
+                    if (HasConflict(allUserDates, (date, period)))
                     {
-                        return ServiceResult.Failed("Ngày " + string.Join(", ", request.FromDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
-
-                    }
-                    if (request.ToDate == item.Date && item.Period == "FullDay")
-                    {
-                        return ServiceResult.Failed("Ngày " + string.Join(", ", request.ToDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
-
+                        return ServiceResult.Failed($"Ngày {date:dd/MM/yyyy} ({(period == "FullDay" ? "Nguyên ngày" : period == "Morning" ? "Sáng" : "Chiều")}) đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
                     }
                 }
 
-                var trungNgay = newLeaveDates.Where(x => allUserDates.Contains(x)).ToList();
-                if (trungNgay.Any())
-                {
-                    return ServiceResult.Failed("Ngày " + string.Join(", ", trungNgay.Select(x => x.Date.ToString("dd/MM/yyyy"))) + " đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
-                }
+
+
+                //foreach (var item in allUserDates)
+                //{
+                //    if(request.FromDate.Date == item.Date.Date && request.FromDateType == item.Period)
+                //    {
+                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.FromDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
+                //    }
+                //    if (request.ToDate.Date == item.Date.Date && request.FromDateType == item.Period)
+                //    {
+                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.ToDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
+                //    }
+                //    if (request.FromDate.Date == item.Date.Date && request.FromDateType == "Full")
+                //    {
+                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.FromDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
+                //    }
+                //    if (request.ToDate.Date == item.Date.Date && request.FromDateType == "Full")
+                //    {
+                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.ToDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
+                //    }                    
+                //}
+
+                //var trungNgay = newLeaveDates.Where(x => allUserDates.Contains(x)).ToList();
+                //if (trungNgay.Any())
+                //{
+                //    return ServiceResult.Failed("Ngày " + string.Join(", ", trungNgay.Select(x => x.Date.ToString("dd/MM/yyyy"))) + " đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
+                //}
 
                 // Kiểm tra tổng số phép đủ không
                 if ((phepConNamCu + phepConNamMoi) < totalLeaveDays)
@@ -370,6 +386,35 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                 return ServiceResult.Failed("Có lỗi khi gửi duyệt: " + ex.Message);
             }
         }
+
+        bool HasConflict(IEnumerable<(DateTime Date, string Period)> usedDates, (DateTime Date, string Period) newDate)
+        {
+            var sameDateItems = usedDates.Where(x => x.Date.Date == newDate.Date.Date).ToList();
+
+            if (!sameDateItems.Any()) return false;
+
+            // Nếu đơn mới là FullDay, chỉ cần đã nghỉ Sáng, Chiều hoặc FullDay là cấm
+            if (newDate.Period == "FullDay")
+            {
+                if (sameDateItems.Any(x => x.Period == "FullDay" || x.Period == "Morning" || x.Period == "Afternoon"))
+                    return true;
+            }
+            // Nếu đơn mới là Morning, chỉ cần đã nghỉ FullDay hoặc Morning là cấm
+            else if (newDate.Period == "Morning")
+            {
+                if (sameDateItems.Any(x => x.Period == "FullDay" || x.Period == "Morning"))
+                    return true;
+            }
+            // Nếu đơn mới là Afternoon, chỉ cần đã nghỉ FullDay hoặc Afternoon là cấm
+            else if (newDate.Period == "Afternoon")
+            {
+                if (sameDateItems.Any(x => x.Period == "FullDay" || x.Period == "Afternoon"))
+                    return true;
+            }
+
+            return false;
+        }
+
 
 
 

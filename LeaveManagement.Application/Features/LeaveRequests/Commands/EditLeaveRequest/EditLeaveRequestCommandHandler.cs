@@ -49,41 +49,7 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
         {
             try
             {
-                #region Delete đơn
-                var leaveRequest = await _unitOfWork.LeaveRequests.GetByIdAsync(request.Id);
-                if (leaveRequest == null ||
-                    (leaveRequest.Status != LeaveStatus.Pending && leaveRequest.Status != LeaveStatus.Submitted))
-                {
-                    return ServiceResult.Failed("Chỉ được chỉnh sửa đơn khi ở trạng thái Chờ duyệt hoặc Đã gửi duyệt!");
-                }
-
-
-                // Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
-                var leaveDetails = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
-
-                // Trả lại phép cho từng dòng detail
-                foreach (var detail in leaveDetails)
-                {
-                    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
-                    {
-                        UserId = leaveRequest.UserId,
-                        Year = detail.Year,
-                        DaysToReturn = detail.Value
-                    });
-                    if (!result)
-                    {
-                        _unitOfWork.Rollback();
-                        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
-                    }
-                }
-
-                // Xóa toàn bộ dòng detail (nếu chưa dùng ON DELETE CASCADE, gọi repo xóa detail trước, nếu đã ON DELETE CASCADE, chỉ cần xóa master)                
-                // Xóa master (LeaveRequest)
-                var sucessDelete = await _unitOfWork.LeaveRequests.DeleteAsync(request.Id);
-
-                #endregion Delete Đơn
-
-                #region Tạo đơn mới
+                #region Kiểm tra ngày trùng
                 int userId = request.UserId;
                 int yearNew = 0;         // Năm của kỳ nghỉ (thường là năm mới)
                 int yearOld = 0;                   // Năm trước kỳ nghỉ (năm cũ)
@@ -132,11 +98,58 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                     compensateDays
                 );
 
-                var trungNgay = newLeaveDates.Where(x => allUserDates.Contains(x)).ToList();
-                if (trungNgay.Any())
+
+                foreach (var (date, period) in newLeaveDates) // newLeaveDates: List<(DateTime, string)>
                 {
-                    return ServiceResult.Failed("Ngày " + string.Join(", ", trungNgay.Select(x => x.Date.ToString("dd/MM/yyyy"))) + " đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
+                    if (HasConflict(allUserDates, (date, period)))
+                    {
+                        return ServiceResult.Failed($"Ngày {date:dd/MM/yyyy} ({(period == "FullDay" ? "Nguyên ngày" : period == "Morning" ? "Sáng" : "Chiều")}) đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
+                    }
                 }
+
+                #endregion Kiểm tra ngày trùng
+
+                #region Delete đơn
+                var leaveRequest = await _unitOfWork.LeaveRequests.GetByIdAsync(request.Id);
+                if (leaveRequest == null ||
+                    (leaveRequest.Status != LeaveStatus.Pending && leaveRequest.Status != LeaveStatus.Submitted))
+                {
+                    return ServiceResult.Failed("Chỉ được chỉnh sửa đơn khi ở trạng thái Chờ duyệt hoặc Đã gửi duyệt!");
+                }
+
+
+                // Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
+                var leaveDetails = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
+
+                // Trả lại phép cho từng dòng detail
+                foreach (var detail in leaveDetails)
+                {
+                    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
+                    {
+                        UserId = leaveRequest.UserId,
+                        Year = detail.Year,
+                        DaysToReturn = detail.Value
+                    });
+                    if (!result)
+                    {
+                        _unitOfWork.Rollback();
+                        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
+                    }
+                }
+
+                // Xóa toàn bộ dòng detail (nếu chưa dùng ON DELETE CASCADE, gọi repo xóa detail trước, nếu đã ON DELETE CASCADE, chỉ cần xóa master)                
+                // Xóa master (LeaveRequest)
+                var sucessDelete = await _unitOfWork.LeaveRequests.DeleteAsync(request.Id);
+
+                #endregion Delete Đơn
+
+                #region Tạo đơn mới                
+
+                //var trungNgay = newLeaveDates.Where(x => allUserDates.Contains(x)).ToList();
+                //if (trungNgay.Any())
+                //{
+                //    return ServiceResult.Failed("Ngày " + string.Join(", ", trungNgay.Select(x => x.Date.ToString("dd/MM/yyyy"))) + " đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
+                //}
 
                 // Kiểm tra tổng số phép đủ không
                 if ((phepConNamCu + phepConNamMoi) < totalLeaveDays)
@@ -337,7 +350,33 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
             }
         }
 
+        bool HasConflict(IEnumerable<(DateTime Date, string Period)> usedDates, (DateTime Date, string Period) newDate)
+        {
+            var sameDateItems = usedDates.Where(x => x.Date.Date == newDate.Date.Date).ToList();
 
+            if (!sameDateItems.Any()) return false;
+
+            // Nếu đơn mới là FullDay, chỉ cần đã nghỉ Sáng, Chiều hoặc FullDay là cấm
+            if (newDate.Period == "FullDay")
+            {
+                if (sameDateItems.Any(x => x.Period == "FullDay" || x.Period == "Morning" || x.Period == "Afternoon"))
+                    return true;
+            }
+            // Nếu đơn mới là Morning, chỉ cần đã nghỉ FullDay hoặc Morning là cấm
+            else if (newDate.Period == "Morning")
+            {
+                if (sameDateItems.Any(x => x.Period == "FullDay" || x.Period == "Morning"))
+                    return true;
+            }
+            // Nếu đơn mới là Afternoon, chỉ cần đã nghỉ FullDay hoặc Afternoon là cấm
+            else if (newDate.Period == "Afternoon")
+            {
+                if (sameDateItems.Any(x => x.Period == "FullDay" || x.Period == "Afternoon"))
+                    return true;
+            }
+
+            return false;
+        }
 
 
 
