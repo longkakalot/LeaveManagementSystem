@@ -29,7 +29,7 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Queries.ValidateLea
         public async Task<ServiceResult> Handle(ValidateLeaveRequest request, CancellationToken cancellationToken)
         {
             //Kiểm tra FromDate và ToDate có hợp lệ không
-            if (request.FromDate < DateTime.Now || request.ToDate < DateTime.Now || request.FromDate > request.ToDate)
+            if (request.FromDate.Date < DateTime.Now.Date || request.ToDate.Date < DateTime.Now.Date || request.FromDate > request.ToDate)
             {
                 return ServiceResult.Failed("Ngày xin nghỉ không hợp lệ");
             }
