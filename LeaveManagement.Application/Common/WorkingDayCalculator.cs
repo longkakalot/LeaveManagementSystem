@@ -206,6 +206,84 @@ namespace LeaveManagement.Application.Common
         }
 
 
+
+
+        public static List<(DateTime Date, string Period)> GetAllWorkingDatesWithType1(
+            DateTime fromDate,
+            DateTime toDate,
+            string fromDateType, // "FullDay", "Morning", "Afternoon"
+            string toDateType,
+            List<DateTime> holidays,
+            List<DateTime> compensateDays)
+        {
+            var result = new List<(DateTime, string)>();
+            var holidaySet = new HashSet<DateTime>(holidays.Select(d => d.Date));
+            var compensateSet = new HashSet<DateTime>(compensateDays.Select(d => d.Date));
+
+            for (var date = fromDate.Date; date <= toDate.Date; date = date.AddDays(1))
+            {
+                // Loại trừ ngày nghỉ cuối tuần, ngày lễ (trừ khi là ngày bù)
+                bool isWeekend = date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+                bool isHoliday = holidaySet.Contains(date);
+                bool isCompensate = compensateSet.Contains(date);
+
+                if ((isWeekend || isHoliday) && !isCompensate)
+                    continue;
+
+                // 1. Nếu là ngày duy nhất của đơn nghỉ (từ == đến)
+                if (fromDate.Date == toDate.Date)
+                {
+                    if (fromDateType == "Morning" && toDateType == "Full")
+                        result.Add((date, "Morning"));
+                    else if (fromDateType == "Afternoon" && toDateType == "Full")
+                        result.Add((date, "Afternoon"));
+                    else if (fromDateType == "Morning" && toDateType == "Afternoon")
+                    {
+                        result.Add((date, "Morning"));
+                        result.Add((date, "Afternoon"));
+                    }
+                    else if (fromDateType == "Morning" && toDateType == "Morning")
+                    {
+                        result.Add((date, "Morning"));                        
+                    }
+                    else if (fromDateType == "Afternoon" && toDateType == "Afternoon")
+                    {
+                        result.Add((date, "Afternoon"));
+                    }
+                    else
+                        result.Add((date, "FullDay"));
+                }
+                // 2. Ngày đầu kỳ nghỉ
+                else if (date == fromDate.Date)
+                {
+                    if (fromDateType == "Morning")
+                        result.Add((date, "Morning"));
+                    else if (fromDateType == "Afternoon")
+                        result.Add((date, "Afternoon"));
+                    else
+                        result.Add((date, "FullDay"));
+                }
+                // 3. Ngày cuối kỳ nghỉ
+                else if (date == toDate.Date)
+                {
+                    if (toDateType == "Morning")
+                        result.Add((date, "Morning"));
+                    else if (toDateType == "Afternoon")
+                        result.Add((date, "Afternoon"));
+                    else
+                        result.Add((date, "FullDay"));
+                }
+                // 4. Các ngày ở giữa luôn là cả ngày
+                else
+                {
+                    result.Add((date, "FullDay"));
+                }
+            }
+
+            return result;
+        }
+
+
         /// <summary>
         /// Lấy tất cả các ngày user đã xin nghỉ (kể cả buổi) từ các LeaveRequest còn hiệu lực (không tính đã hủy/reject)
         /// </summary>
@@ -218,11 +296,11 @@ namespace LeaveManagement.Application.Common
 
             foreach (var req in leaveRequests)
             {
-                var days = WorkingDayCalculator.GetAllWorkingDatesWithType(
-                    req.FromDate,
-                    req.ToDate,
-                    req.FromDateType!,
-                    req.ToDateType!,
+                var days = WorkingDayCalculator.GetAllWorkingDatesWithType1(
+                    req.Date,
+                    req.Date,
+                    req.Period!,
+                    req.Period!,
                     holidays,
                     compensateDays
                 );
