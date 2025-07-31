@@ -118,27 +118,28 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.DeleteLeav
             try
             {
                 var leaveRequest = await _unitOfWork.LeaveRequests.GetByIdAsync(request.Id);
-                if (leaveRequest == null || leaveRequest.Status != (int)LeaveStatus.Pending)
+                if (leaveRequest == null ||
+                    (leaveRequest.Status != LeaveStatus.Pending && leaveRequest.Status != LeaveStatus.Submitted))
                     return ServiceResult.Failed("Không thể hủy đơn: " + request.Id);
 
-                // Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
-                var details = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
+                //// Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
+                //var details = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
 
-                // Trả lại phép cho từng dòng detail
-                foreach (var detail in details)
-                {
-                    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
-                    {
-                        UserId = leaveRequest.UserId,
-                        Year = detail.Year,
-                        DaysToReturn = detail.Value
-                    });
-                    if (!result)
-                    {
-                        _unitOfWork.Rollback();
-                        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
-                    }
-                }
+                //// Trả lại phép cho từng dòng detail
+                //foreach (var detail in details)
+                //{
+                //    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
+                //    {
+                //        UserId = leaveRequest.UserId,
+                //        Year = detail.Year,
+                //        DaysToReturn = detail.Value
+                //    });
+                //    if (!result)
+                //    {
+                //        _unitOfWork.Rollback();
+                //        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
+                //    }
+                //}
 
                 // Xóa toàn bộ dòng detail (nếu chưa dùng ON DELETE CASCADE, gọi repo xóa detail trước, nếu đã ON DELETE CASCADE, chỉ cần xóa master)
                 // await _unitOfWork.LeaveRequestDetails.DeleteByLeaveRequestId(leaveRequest.Id);

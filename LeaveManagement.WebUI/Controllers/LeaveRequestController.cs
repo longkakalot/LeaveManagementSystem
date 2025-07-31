@@ -8,6 +8,8 @@ using LeaveManagement.Application.Features.LeaveRequests.Queries.GetAllByUserId;
 using LeaveManagement.Application.Features.LeaveRequests.Queries.GetLeaveRequestById;
 //using LeaveManagement.Application.Features.LeaveRequests.Queries.GetLeaveRequestList;
 using LeaveManagement.Application.Features.LeaveRequests.Queries.GetLeaveTypes;
+using LeaveManagement.Application.Features.LeaveRequests.Queries.GetTotalLeaveDays;
+
 //using LeaveManagement.Application.Features.LeaveRequests.Queries.GetTotalLeaveDays;
 using LeaveManagement.Application.Features.LeaveRequests.Queries.GetTotalLeaveDaysByUserIdAndYear;
 using LeaveManagement.Application.Features.LeaveRequests.Queries.ValidateLeaveRequest;
@@ -19,6 +21,8 @@ using LeaveManagement.Domain.Enums;
 using LeaveManagement.WebUI.ViewModels;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
+
 //using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -43,8 +47,8 @@ namespace LeaveManagement.WebUI.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var userId = _currentUserService.UserId;
-            
+            var userId = _currentUserService.UserId;           
+
             var year = DateTime.Now.Year;
 
             var leaveTypes = await _mediator.Send(new GetLeaveTypesQuery());
@@ -67,40 +71,41 @@ namespace LeaveManagement.WebUI.Controllers
 
             //insert UserLeaveBalances khi tạo phiếu
 
-            for (int i = DateTime.Now.Year; i < (year + 5); i++)
-            {
-                using (var scope = HttpContext.RequestServices.CreateScope())
-                {
-                    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-                    //Kiểm tra bảng UserLeaveBalances, có thông tin userId và year hiện hành không?
-                    var getUserLeaveBalances = await mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = i });
+            //for (int i = DateTime.Now.Year; i < (year + 5); i++)
+            //{
+            //    using (var scope = HttpContext.RequestServices.CreateScope())
+            //    {
+            //        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            //        //Kiểm tra bảng UserLeaveBalances, có thông tin userId và year hiện hành không?
+            //        var getUserLeaveBalances = await mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = i });
 
-                    if (getUserLeaveBalances == null)
-                    {
-                        var user = await mediator.Send(new GetTotalLeaveDaysByUserIdAndYear { UserId = userId, Year = i });
-                        var soNgayPhepNam = user.SoNgayPhepNam;
+            //        if (getUserLeaveBalances == null)
+            //        {
+            //            var user = await mediator.Send(new GetTotalLeaveDaysByUserIdAndYear { UserId = userId, Year = i });
+            //            var soNgayPhepNam = user.SoNgayPhepNam;
 
-                        var userLeaveBalance = await mediator.Send(new AddUserLeaveBalanceCommand
-                        {
-                            UserId = userId,
-                            Year = i,
-                            LeaveDaysGranted = soNgayPhepNam,
-                            LeaveDaysRemain = soNgayPhepNam
-                        });
+            //            var userLeaveBalance = await mediator.Send(new AddUserLeaveBalanceCommand
+            //            {
+            //                UserId = userId,
+            //                Year = i,
+            //                LeaveDaysGranted = soNgayPhepNam,
+            //                LeaveDaysRemain = soNgayPhepNam
+            //            });
 
-                        if (!userLeaveBalance.Success)
-                        {
-                            ModelState.AddModelError("", userLeaveBalance.Message!);
-                            return View(modelCurrent);
-                        }
-                    }
-                }
-            }
+            //            if (!userLeaveBalance.Success)
+            //            {
+            //                ModelState.AddModelError("", userLeaveBalance.Message!);
+            //                return View(modelCurrent);
+            //            }
+            //        }
+            //    }
+            //}
 
+            var totalLeaveDays = await _mediator.Send(new GetTotalLeaveDaysQueryByUser { UserId = userId, Year = year });
 
-            var userLeaveBalancesOldYear = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = year});
+            //var userLeaveBalancesOldYear = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = year});
 
-            var soNgayDaNghiOldYear = userLeaveBalancesOldYear.LeaveDaysTaken;
+            //var soNgayDaNghiOldYear = userLeaveBalancesOldYear.LeaveDaysTaken;
 
             var model = new CreateLeaveRequestViewModel
             {
@@ -116,70 +121,9 @@ namespace LeaveManagement.WebUI.Controllers
                 SoNgayPhepNam = _currentUserService.SoNgayPhepNam,
                 SoNgayNghiCoBan = _currentUserService.SoNgayNghiCoBan,
                 NgayPhepCongThem = _currentUserService.NgayPhepCongThem,
-                TotalLeaveDays = soNgayDaNghiOldYear
-            };
-
+                TotalLeaveDays = totalLeaveDays
+            };          
             
-            //var yearNext = year + 1;
-
-            //var soNgayPhepNamMoi = await _mediator.Send(new GetTotalLeaveDaysByUserIdAndYear { UserId = userId, Year = yearNext });
-
-            
-            //var getUserLeaveBalancesNext = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = yearNext });
-
-            
-
-
-            //for(int i = DateTime.Now.Year; i < (year + 5); i++)
-            //{
-            //    //Kiểm tra bảng UserLeaveBalances, có thông tin userId và year hiện hành không?
-            //    var getUserLeaveBalances = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = i });
-
-
-
-            //    if (getUserLeaveBalances == null)
-            //    {
-            //        var user = await _mediator.Send(new GetTotalLeaveDaysByUserIdAndYear { UserId = userId, Year = i });
-            //        var soNgayPhepNam = user.SoNgayPhepNam;
-
-            //        var userLeaveBalance = await _mediator.Send(new AddUserLeaveBalanceCommand
-            //        {
-            //            UserId = userId,
-            //            Year = i,
-            //            LeaveDaysGranted = soNgayPhepNam
-            //        });
-
-            //        if (!userLeaveBalance.Success)
-            //        {
-            //            ModelState.AddModelError("", userLeaveBalance.Message!);
-            //            return View(model);
-            //        }
-            //    }                
-            //}
-
-
-
-
-
-            ////Nếu chưa có thì insert vào
-
-
-            ////Nếu chưa có thì insert vào
-            //if (getUserLeaveBalancesNext == null)
-            //{
-            //    var userLeaveBalance = await _mediator.Send(new AddUserLeaveBalanceCommand
-            //    {
-            //        UserId = userId,
-            //        Year = yearNext,
-            //        LeaveDaysGranted = soNgayPhepNamMoi.SoNgayPhepNam
-            //    });
-
-            //    if (!userLeaveBalance.Success)
-            //    {
-            //        ModelState.AddModelError("", userLeaveBalance.Message!);
-            //        return View(model);
-            //    }
-            //}
 
 
             return View(model);
@@ -201,10 +145,10 @@ namespace LeaveManagement.WebUI.Controllers
 
             // Lấy số ngày đã nghỉ
             //var totalLeaveDays = await _mediator.Send(new GetTotalLeaveDaysQueryByUser { UserId = userId, Year = year });
-            var userLeaveBalancesOldYear = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = year });
-            var soNgayDaNghiOldYear = userLeaveBalancesOldYear.LeaveDaysTaken;
+            //var userLeaveBalancesOldYear = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = year });
+            //var soNgayDaNghiOldYear = userLeaveBalancesOldYear.LeaveDaysTaken;
 
-
+            var soNgayDaNghiOldYear = await _mediator.Send(new GetTotalLeaveDaysQueryByUser { UserId = userId, Year = year });
 
             // Nạp lại select list loại phép
             async Task SetDropdownsAndData()

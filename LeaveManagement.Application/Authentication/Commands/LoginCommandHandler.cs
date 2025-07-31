@@ -59,30 +59,7 @@ namespace LeaveManagement.Application.Authentication.Commands
                 var userDto = _mapper.Map<UserDto>(user);
 
                 return _jwtService.GenerateToken(userDto);
-
-
-                //         using var connection = _connectionFactory.CreateQueryConnection();      								
-
-                //         var sql = $@"select us.User_Id as UserId, us.User_Code as Username
-                //                     ,us.User_Name as Fullname
-                //, pb.MaPhongBan,pb.TenPhongBan
-                //,nsnv.MaChucVu, nsnv.MocTinhPhep
-                //                     from Sys_Users us
-                //	left join NhanVien_User_Mapping map on map.User_Id = us.User_Id
-                //	left join NhanVien nv on nv.NhanVien_Id = map.NhanVien_Id
-                //	left join DM_PhongBan pb on pb.PhongBan_Id = nv.PhongBan_Id
-                //	left join [NS_NHANVIEN] nsnv on nsnv.MaNhanVien = us.User_Code
-                //                     where us.User_Code = '{request.Username}' and us.User_Password = '{hashedPassword}'
-                //	";
-
-
-                //         var user = await connection.QueryFirstOrDefaultAsync<UserDto>(
-                //             sql, null, commandType: CommandType.Text);
-
-                //         if (user == null)
-                //             throw new UnauthorizedAccessException("Invalid username or password");
-
-                //return _jwtService.GenerateToken(user);
+                
             }
             catch (Exception ex)
             {

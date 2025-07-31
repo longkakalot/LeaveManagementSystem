@@ -439,7 +439,7 @@ namespace LeaveManagement.Infrastructure.Repositories
             {
                 var result = await _connection.QuerySingleOrDefaultAsync<double>(
                     sql,
-                    new { UserId = userId, Year = year, Action = "GetTotalLeaveDaysAsync" },
+                    new { UserId = userId, Year = year, Action = "GetTotalLeaveDaysByUserId" },
                     transaction: _transaction
                 );
                 return result;
@@ -449,7 +449,7 @@ namespace LeaveManagement.Infrastructure.Repositories
                 using var conn = _connectionFactory.CreateQueryConnection();
                 var result = await conn.QuerySingleOrDefaultAsync<double>(
                     sql,
-                    new { UserId = userId, Year = year, Action = "GetTotalLeaveDaysAsync" },
+                    new { UserId = userId, Year = year, Action = "GetTotalLeaveDaysByUserId" },
                     transaction: _transaction
                 );
                 return result;

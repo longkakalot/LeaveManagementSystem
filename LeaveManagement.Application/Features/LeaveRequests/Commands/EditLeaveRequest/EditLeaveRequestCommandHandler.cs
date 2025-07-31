@@ -59,25 +59,25 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                     return ServiceResult.Failed("Chỉ được chỉnh sửa đơn khi ở trạng thái Chờ duyệt hoặc Đã gửi duyệt!");
                 }
 
-                // Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
-                var leaveDetails = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
+                //// Lấy toàn bộ dòng detail đã sinh ra theo LeaveRequestId
+                //var leaveDetails = await _unitOfWork.LeaveRequestDetails.GetByLeaveRequestId(leaveRequest.Id);
 
-                // Trả lại phép cho từng dòng detail
-                foreach (var detail in leaveDetails)
-                {
-                    soNgayNghiDonEdit += detail.Value;
-                    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
-                    {
-                        UserId = leaveRequest.UserId,
-                        Year = detail.Year,
-                        DaysToReturn = detail.Value
-                    });
-                    if (!result)
-                    {
-                        _unitOfWork.Rollback();
-                        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
-                    }
-                }
+                //// Trả lại phép cho từng dòng detail
+                //foreach (var detail in leaveDetails)
+                //{
+                //    soNgayNghiDonEdit += detail.Value;
+                //    var result = await _unitOfWork.UserLeaveBalances.ReturnUserLeaveBalance(new LeaveManagement.Domain.Entities.UserLeaveBalances
+                //    {
+                //        UserId = leaveRequest.UserId,
+                //        Year = detail.Year,
+                //        DaysToReturn = detail.Value
+                //    });
+                //    if (!result)
+                //    {
+                //        _unitOfWork.Rollback();
+                //        return ServiceResult.Failed($"Có lỗi khi hoàn phép năm {detail.Year}");
+                //    }
+                //}
 
                 // Xóa toàn bộ dòng detail (nếu chưa dùng ON DELETE CASCADE, gọi repo xóa detail trước, nếu đã ON DELETE CASCADE, chỉ cần xóa master)                
                 // Xóa master (LeaveRequest)
@@ -106,11 +106,14 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                 var lastYearDate = new DateTime(yearOld, 12, 31);
 
                 // Lấy số phép còn lại năm cũ và năm mới
-                var userLeaveBalanceNamCu = await _unitOfWork.UserLeaveBalances.GetUserLeaveBalance(userId, yearOld);
-                double phepConNamCu = userLeaveBalanceNamCu?.LeaveDaysRemain ?? 0;
+                double soNgayDaNghiNamCu = await _unitOfWork.LeaveRequests.GetTotalLeaveDaysAsync(request.UserId, yearOld);
 
-                var userLeaveBalanceNamMoi = await _unitOfWork.UserLeaveBalances.GetUserLeaveBalance(userId, yearNew);
-                double phepConNamMoi = userLeaveBalanceNamMoi?.LeaveDaysRemain ?? 0;
+                double phepConNamCu = _currentUserService.SoNgayPhepNam - soNgayDaNghiNamCu;
+
+
+                double soNgayDaNghiNamMoi = await _unitOfWork.LeaveRequests.GetTotalLeaveDaysAsync(request.UserId, yearNew);
+
+                double phepConNamMoi = _currentUserService.SoNgayPhepNam - soNgayDaNghiNamMoi;
 
                 // Lấy ngày nghỉ hợp lệ theo đơn
                 var holidays = await _unitOfWork.LeaveRequests.GetAllHolidaysAsync(request.FromDate, request.ToDate);
@@ -173,7 +176,7 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                     //Nếu ngày nghỉ bắc cầu, trong đó ngày FromDate <=31/12 thì sẽ kiểm tra còn đủ ngày nghỉ không?
                     if (date <= lastYearDate && (phepConNamCu + soNgayNghiDonEdit) < value)
                     {
-                        return ServiceResult.Failed($"Phép năm {yearOld} của bạn không đủ để xin nghỉ {totalLeaveDays} ngày.");
+                        return ServiceResult.Failed($"Phép năm {yearOld} của bạn còn {phepConNamCu + soNgayNghiDonEdit} ngày, không đủ để xin nghỉ {totalLeaveDays} ngày.");
                     }
 
                     // Nếu ngày nghỉ <= 31/3 năm mới, còn phép năm cũ thì ưu tiên trừ phép năm cũ
@@ -182,18 +185,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                         if (phepConNamCu >= value)
                         {
                             // Trừ hết vào phép năm cũ
-                            var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                            {
-                                UserId = userId,
-                                Year = yearOld,
-                                DaysToDeduct = value
-                            };
-                            var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                            if (!kq1)
-                            {
-                                _unitOfWork.Rollback();
-                                return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
-                            }
+                            //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                            //{
+                            //    UserId = userId,
+                            //    Year = yearOld,
+                            //    DaysToDeduct = value
+                            //};
+                            //var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                            //if (!kq1)
+                            //{
+                            //    _unitOfWork.Rollback();
+                            //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
+                            //}
 
                             details.Add(new LeaveRequestDetail
                             {
@@ -214,18 +217,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
 
                             if (remainOld > 0)
                             {
-                                var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                                {
-                                    UserId = userId,
-                                    Year = yearOld,
-                                    DaysToDeduct = remainOld
-                                };
-                                var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                                if (!kq1)
-                                {
-                                    _unitOfWork.Rollback();
-                                    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
-                                }
+                                //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                                //{
+                                //    UserId = userId,
+                                //    Year = yearOld,
+                                //    DaysToDeduct = remainOld
+                                //};
+                                //var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                                //if (!kq1)
+                                //{
+                                //    _unitOfWork.Rollback();
+                                //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
+                                //}
 
                                 details.Add(new LeaveRequestDetail
                                 {
@@ -241,18 +244,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
 
                             if (remainNew > 0)
                             {
-                                var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                                {
-                                    UserId = userId,
-                                    Year = yearNew,
-                                    DaysToDeduct = remainNew
-                                };
-                                var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                                if (!kq2)
-                                {
-                                    _unitOfWork.Rollback();
-                                    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
-                                }
+                                //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                                //{
+                                //    UserId = userId,
+                                //    Year = yearNew,
+                                //    DaysToDeduct = remainNew
+                                //};
+                                //var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                                //if (!kq2)
+                                //{
+                                //    _unitOfWork.Rollback();
+                                //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
+                                //}
 
                                 details.Add(new LeaveRequestDetail
                                 {
@@ -270,18 +273,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                     else
                     {
                         // Sau 31/3 năm mới hoặc phép năm cũ đã hết, chỉ trừ phép năm mới
-                        var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                        {
-                            UserId = userId,
-                            Year = yearNew,
-                            DaysToDeduct = value
-                        };
-                        var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                        if (!kq2)
-                        {
-                            _unitOfWork.Rollback();
-                            return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
-                        }
+                        //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                        //{
+                        //    UserId = userId,
+                        //    Year = yearNew,
+                        //    DaysToDeduct = value
+                        //};
+                        //var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                        //if (!kq2)
+                        //{
+                        //    _unitOfWork.Rollback();
+                        //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
+                        //}
 
                         details.Add(new LeaveRequestDetail
                         {

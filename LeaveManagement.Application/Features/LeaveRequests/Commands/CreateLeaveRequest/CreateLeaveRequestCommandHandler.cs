@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeaveRequest
 {
@@ -134,11 +135,15 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                 var lastYearDate = new DateTime(yearOld, 12, 31);
 
                 // Lấy số phép còn lại năm cũ và năm mới
-                var userLeaveBalanceNamCu = await _unitOfWork.UserLeaveBalances.GetUserLeaveBalance(userId, yearOld);
-                double phepConNamCu = userLeaveBalanceNamCu?.LeaveDaysRemain ?? 0;
+                double soNgayDaNghiNamCu = await _unitOfWork.LeaveRequests.GetTotalLeaveDaysAsync(request.UserId, yearOld);
+                
+                double phepConNamCu = (double)(_currentUser.SoNgayPhepNam - soNgayDaNghiNamCu);
 
-                var userLeaveBalanceNamMoi = await _unitOfWork.UserLeaveBalances.GetUserLeaveBalance(userId, yearNew);
-                double phepConNamMoi = userLeaveBalanceNamMoi?.LeaveDaysRemain ?? 0;
+
+                double soNgayDaNghiNamMoi = await _unitOfWork.LeaveRequests.GetTotalLeaveDaysAsync(request.UserId, yearNew);
+                
+                double phepConNamMoi = (double)(_currentUser.SoNgayPhepNam - soNgayDaNghiNamMoi);
+                
 
                 // Lấy ngày nghỉ hợp lệ theo đơn
                 var holidays = await _unitOfWork.LeaveRequests.GetAllHolidaysAsync(request.FromDate, request.ToDate);
@@ -162,6 +167,21 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                     compensateDays
                 );
 
+                var totalLeaveDayRemain = 0.0;
+
+                foreach (var (date, period) in newLeaveDates)
+                {
+                    double value = period == "FullDay" ? 1.0 : (period == "Morning" || period == "Afternoon" ? 0.5 : 0);
+                    totalLeaveDayRemain += value;
+
+                    if (date <= lastYearDate && phepConNamCu < totalLeaveDayRemain)
+                    {
+                        return ServiceResult.Failed($"Phép năm {yearOld} của bạn chỉ còn {phepConNamCu}, không đủ để xin nghỉ {totalLeaveDayRemain} ngày.");
+                    }
+                }
+
+                
+
                 foreach (var (date, period) in newLeaveDates) // newLeaveDates: List<(DateTime, string)>
                 {
                     if (HasConflict(allUserDates, (date, period)))
@@ -169,34 +189,6 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                         return ServiceResult.Failed($"Ngày {date:dd/MM/yyyy} ({(period == "FullDay" ? "Nguyên ngày" : period == "Morning" ? "Sáng" : "Chiều")}) đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
                     }
                 }
-
-
-
-                //foreach (var item in allUserDates)
-                //{
-                //    if(request.FromDate.Date == item.Date.Date && request.FromDateType == item.Period)
-                //    {
-                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.FromDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
-                //    }
-                //    if (request.ToDate.Date == item.Date.Date && request.FromDateType == item.Period)
-                //    {
-                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.ToDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
-                //    }
-                //    if (request.FromDate.Date == item.Date.Date && request.FromDateType == "Full")
-                //    {
-                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.FromDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
-                //    }
-                //    if (request.ToDate.Date == item.Date.Date && request.FromDateType == "Full")
-                //    {
-                //        return ServiceResult.Failed("Ngày " + string.Join(", ", request.ToDate.Date.ToString("dd/MM/yyyy") + " đã có đơn nghỉ phép, vui lòng chọn ngày khác."));
-                //    }                    
-                //}
-
-                //var trungNgay = newLeaveDates.Where(x => allUserDates.Contains(x)).ToList();
-                //if (trungNgay.Any())
-                //{
-                //    return ServiceResult.Failed("Ngày " + string.Join(", ", trungNgay.Select(x => x.Date.ToString("dd/MM/yyyy"))) + " đã có đơn nghỉ phép, vui lòng chọn ngày khác.");
-                //}
 
                 // Kiểm tra tổng số phép đủ không
                 if ((phepConNamCu + phepConNamMoi) < totalLeaveDays)
@@ -212,10 +204,7 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                     double value = period == "FullDay" ? 1.0 : (period == "Morning" || period == "Afternoon" ? 0.5 : 0);
 
                     //Nếu ngày nghỉ bắc cầu, trong đó ngày FromDate <=31/12 thì sẽ kiểm tra còn đủ ngày nghỉ không?
-                    if(date <= lastYearDate && phepConNamCu < value)
-                    {
-                        return ServiceResult.Failed($"Phép năm {yearOld} của bạn chỉ còn {phepConNamCu}, không đủ để xin nghỉ {value} ngày.");
-                    }
+                    
 
                     // Nếu ngày nghỉ <= 31/3 năm mới, còn phép năm cũ thì ưu tiên trừ phép năm cũ
                     if (date <= lastCarryOverDate && phepConNamCu > 0)
@@ -223,18 +212,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                         if (phepConNamCu >= value)
                         {
                             // Trừ hết vào phép năm cũ
-                            var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                            {
-                                UserId = userId,
-                                Year = yearOld,
-                                DaysToDeduct = value
-                            };
-                            var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                            if (!kq1)
-                            {
-                                _unitOfWork.Rollback();
-                                return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
-                            }
+                            //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                            //{
+                            //    UserId = userId,
+                            //    Year = yearOld,
+                            //    DaysToDeduct = value
+                            //};
+                            //var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                            //if (!kq1)
+                            //{
+                            //    _unitOfWork.Rollback();
+                            //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
+                            //}
 
                             details.Add(new LeaveRequestDetail
                             {
@@ -255,18 +244,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
 
                             if (remainOld > 0)
                             {
-                                var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                                {
-                                    UserId = userId,
-                                    Year = yearOld,
-                                    DaysToDeduct = remainOld
-                                };
-                                var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                                if (!kq1)
-                                {
-                                    _unitOfWork.Rollback();
-                                    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
-                                }
+                                //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                                //{
+                                //    UserId = userId,
+                                //    Year = yearOld,
+                                //    DaysToDeduct = remainOld
+                                //};
+                                //var kq1 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                                //if (!kq1)
+                                //{
+                                //    _unitOfWork.Rollback();
+                                //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearOld);
+                                //}
 
                                 details.Add(new LeaveRequestDetail
                                 {
@@ -282,18 +271,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
 
                             if (remainNew > 0)
                             {
-                                var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                                {
-                                    UserId = userId,
-                                    Year = yearNew,
-                                    DaysToDeduct = remainNew
-                                };
-                                var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                                if (!kq2)
-                                {
-                                    _unitOfWork.Rollback();
-                                    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
-                                }
+                                //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                                //{
+                                //    UserId = userId,
+                                //    Year = yearNew,
+                                //    DaysToDeduct = remainNew
+                                //};
+                                //var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                                //if (!kq2)
+                                //{
+                                //    _unitOfWork.Rollback();
+                                //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
+                                //}
 
                                 details.Add(new LeaveRequestDetail
                                 {
@@ -311,18 +300,18 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
                     else
                     {
                         // Sau 31/3 năm mới hoặc phép năm cũ đã hết, chỉ trừ phép năm mới
-                        var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
-                        {
-                            UserId = userId,
-                            Year = yearNew,
-                            DaysToDeduct = value
-                        };
-                        var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
-                        if (!kq2)
-                        {
-                            _unitOfWork.Rollback();
-                            return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
-                        }
+                        //var userLeaveBalance = new LeaveManagement.Domain.Entities.UserLeaveBalances
+                        //{
+                        //    UserId = userId,
+                        //    Year = yearNew,
+                        //    DaysToDeduct = value
+                        //};
+                        //var kq2 = await _unitOfWork.UserLeaveBalances.DeductUserLeaveBalance(userLeaveBalance);
+                        //if (!kq2)
+                        //{
+                        //    _unitOfWork.Rollback();
+                        //    return ServiceResult.Failed("Có lỗi khi cập nhật phép năm " + yearNew);
+                        //}
 
                         details.Add(new LeaveRequestDetail
                         {
