@@ -25,6 +25,7 @@ namespace LeaveManagement.Application.Interfaces
         ICompensateWorkingDayRepository CompensateWorkingDays { get; }
         IUserLeaveBalanceRepository UserLeaveBalances { get; }
         ILeaveRequestDetailRepository LeaveRequestDetails { get; }
+        ICategoryRepository Categories { get; }
         // ... các repo khác nếu có
 
         void Commit();

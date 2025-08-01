@@ -36,6 +36,7 @@ namespace LeaveManagement.Infrastructure.Repositories
         public ICompensateWorkingDayRepository CompensateWorkingDays { get; }
         public IUserLeaveBalanceRepository UserLeaveBalances { get; }
         public ILeaveRequestDetailRepository LeaveRequestDetails { get; }
+        public ICategoryRepository Categories { get; }
         public IApproverService ApproverService => throw new NotImplementedException();
 
         // ... các repo khác
@@ -61,6 +62,7 @@ namespace LeaveManagement.Infrastructure.Repositories
             UserLeaveBalances = new UserLeaveBalanceRepository(_connection, _transaction);
             CompensateWorkingDays = new CompensateWorkingDayRepository(_connection, _transaction);
             LeaveRequestDetails = new LeaveRequestDetailRepository(_connection, _transaction);
+            Categories = new CategoryRepository(_connection, _transaction);
             // ... các repo khác
         }
 

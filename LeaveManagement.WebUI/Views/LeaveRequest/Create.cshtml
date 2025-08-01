@@ -2,6 +2,11 @@
 
 @{
     ViewData["Title"] = "Tạo đơn nghỉ phép";
+
+    <!-- Trong _Layout.cshtml hoặc View cần dùng -->
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+
 }
 
 <div class="container py-4">
@@ -29,7 +34,7 @@
 
                     <form asp-action="Create" method="post" autocomplete="off">
                         @* Loại phép *@
-                        <div class="mb-3">
+                        <div class="mb-3" hidden >
                             <label asp-for="LeaveTypeId" class="form-label">Loại nghỉ phép</label>
                             <select asp-for="LeaveTypeId" asp-items="Model.LeaveTypes" class="form-select"></select>
                             <span asp-validation-for="LeaveTypeId" class="text-danger"></span>
@@ -72,11 +77,37 @@
                             <textarea asp-for="Reason" class="form-control" rows="2"></textarea>
                             <span asp-validation-for="Reason" class="text-danger"></span>
                         </div>
+                        
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="CountryCode" class="form-label">Quốc gia</label>
+                                    <select asp-for="CountryCode" asp-items="Model.Countries" class="form-select" id="CountryCode"></select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3" id="province-block" style="display:@(Model.CountryCode == "VN" ? "block" : "none")">
+                                    <label for="ProvinceId" class="form-label">Tỉnh/Thành phố</label>
+                                    <select asp-for="ProvinceId" asp-items="Model.Provinces" class="form-select" id="ProvinceId"></select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3" id="ward-block" style="display:@(Model.CountryCode == "VN" && (Model.ProvinceId != 0) ? "block" : "none")">
+                                    <label for="WardId" class="form-label">Phường/Xã</label>
+                                    <select asp-for="WardId" asp-items="Model.Wards" class="form-select" id="WardId"></select>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label asp-for="VacationPlace" class="form-label">Nơi nghỉ phép</label>
-                            <textarea asp-for="VacationPlace" class="form-control" rows="1"></textarea>
+                            <label asp-for="VacationPlace" class="form-label">Nơi nghỉ phép (nhập số nhà, tên đường, nếu có)</label>
+                            <input asp-for="VacationPlace" class="form-control"/>
                             <span asp-validation-for="VacationPlace" class="text-danger"></span>
                         </div>
+
+                        <input type="hidden" id="selectedProvince" value="@Model.ProvinceId" />
+                        <input type="hidden" id="selectedWard" value="@Model.WardId" />
                         <div class="text-end">
                             <button type="submit" class="btn btn-success px-4">
                                 <i class="bi bi-send-check"></i> Gửi yêu cầu
@@ -99,6 +130,9 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         // Hiển thị select buổi hợp lý khi nghỉ 1 ngày hay nhiều ngày
         function updateSelects() {
@@ -123,4 +157,106 @@
             updateSelects();
         });
     </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#CountryCode').select2({
+                placeholder: 'Chọn quốc gia...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#ProvinceId').select2({
+                placeholder: 'Chọn tỉnh/thành...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#WardId').select2({
+                placeholder: 'Chọn xã/phường...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Lưu giá trị đã chọn từ Razor (nếu có)
+            var selectedProvinceId = $('#selectedProvince').val();
+            var selectedWardId = $('#selectedWard').val();
+
+            // Nếu là VN thì hiển thị các block và load dữ liệu mặc định
+            if ($('#CountryCode').val() === 'VN') {
+                $('#province-block').show();
+                loadProvinces(selectedProvinceId);
+            } else {
+                $('#province-block').hide();
+                $('#ward-block').hide();
+            }
+
+            // Sự kiện khi đổi quốc gia
+            $('#CountryCode').change(function () {
+                var country = $(this).val();
+                if (country === 'VN') {
+                    $('#province-block').show();
+                    var id = $('#selectedProvince').val() || '50029';
+                    loadProvinces(id);
+                } else {
+                    $('#province-block').hide();
+                    $('#ward-block').hide();
+                    $('#ProvinceId').empty();
+                    $('#WardId').empty();
+                }
+            });
+
+            // Sự kiện khi đổi tỉnh
+            $('#ProvinceId').change(function () {
+                var provinceId = $(this).val();
+                if (provinceId) {
+                    $('#ward-block').show();
+                    var id = $('#selectedWard').val();
+                    loadWards(provinceId, id);
+                } else {
+                    $('#ward-block').hide();
+                    $('#WardId').empty();
+                }
+            });
+
+            function loadProvinces(selectedProvinceId) {
+                $.get('/LeaveRequest/GetProvinces', function (data) {
+                    $('#ProvinceId').empty();
+                    $.each(data, function (i, item) {
+                        $('#ProvinceId').append($('<option>', { value: item.id, text: item.provinceName }));
+                    });
+
+                    //alert(selectedProvinceId);
+                    if (selectedProvinceId != 0) {
+                        $('#ProvinceId').val(selectedProvinceId);
+                    } else {
+                        $('#ProvinceId').val('50029'); // Mặc định Hồ Chí Minh
+                    }
+                    $('#ProvinceId').trigger('change'); // Sau khi set, trigger change để load ward
+                });
+            }
+
+            function loadWards(provinceId, selectedWardId) {
+                $.get('/LeaveRequest/GetWardsByProvince?provinceId=' + provinceId, function (data) {
+                    $('#WardId').empty();
+                    $.each(data, function (i, item) {
+                        $('#WardId').append($('<option>', { value: item.id, text: item.wardName }));
+                    });
+                    //alert(selectedWardId);
+                    if (selectedWardId != 0) {
+                        //alert("dfasdf");
+                        $('#WardId').val(selectedWardId);
+                    }
+                    else {
+                        $('#WardId').val('62659');
+                    }
+                    $('#WardId').trigger('change');
+                });
+            }
+        });
+
+
+        
+    </script>
+
 }

@@ -32,6 +32,23 @@ namespace LeaveManagement.WebUI.ViewModels
         public string VacationPlace { get; set; } = string.Empty;
         public int Status { get; set; }
         public List<SelectListItem> LeaveTypes { get; set; } = new();
+
+        public string CountryCode { get; set; } = "VN";
+        public int ProvinceId { get; set; }
+        public int WardId { get; set; }
+
+        public List<SelectListItem> Countries { get; set; } = new();
+        public List<SelectListItem> Provinces { get; set; } = new();
+        public List<SelectListItem> Wards { get; set; } = new();
+
+        public string? CountryName { get; set; }
+        public string? ProvinceName { get; set; }
+        public string? WardName { get; set; }
+
+        //public string? SelectedCountryCode { get; set; }
+        //public string? SelectedProvinceId { get; set; }
+        //public string? SelectedWardId { get; set; }
+
     }
 
 }

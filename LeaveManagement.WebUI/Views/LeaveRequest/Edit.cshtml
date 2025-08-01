@@ -1,52 +1,4 @@
-﻿@* @model LeaveManagement.WebUI.ViewModels.LeaveRequestDto
-
-@{
-    ViewData["Title"] = "Sửa đơn nghỉ phép";
-}
-
-<h2>@ViewData["Title"]</h2>
-
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="UserId" /> <!-- ✅ cần thiết -->
-
-    <div class="form-group">
-        <label asp-for="FromDate"></label>
-        <input asp-for="FromDate" type="date" class="form-control" />
-        <span asp-validation-for="FromDate" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="ToDate"></label>
-        <input asp-for="ToDate" type="date" class="form-control" />
-        <span asp-validation-for="ToDate" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Reason"></label>
-        <textarea asp-for="Reason" class="form-control"></textarea>
-        <span asp-validation-for="Reason" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="VacationPlace"></label>
-        <textarea asp-for="VacationPlace" class="form-control"></textarea>
-        <span asp-validation-for="VacationPlace" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Cập nhật</button>
-    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
-</form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
-
-
- *@
-
-
-@model LeaveManagement.WebUI.ViewModels.LeaveRequestDto
+﻿@model LeaveManagement.WebUI.ViewModels.LeaveRequestDto
 
 @{
     ViewData["Title"] = "Sửa đơn nghỉ phép";
@@ -94,6 +46,44 @@
                                 </select>
                             </div>
                         </div>
+
+
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="CountryCode" class="form-label">Quốc gia</label>
+                                    <select asp-for="CountryCode" asp-items="Model.Countries" class="form-select" id="CountryCode"></select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3" id="province-block" style="display:@(Model.CountryCode == "VN" ? "block" : "none")">
+                                    <label for="ProvinceId" class="form-label">Tỉnh/Thành phố</label>
+                                    <select asp-for="ProvinceId" asp-items="Model.Provinces" class="form-select" id="ProvinceId"></select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3" id="ward-block" style="display:@(Model.CountryCode == "VN" && (Model.ProvinceId != 0) ? "block" : "none")">
+                                    <label for="WardId" class="form-label">Phường/Xã</label>
+                                    <select asp-for="WardId" asp-items="Model.Wards" class="form-select" id="WardId"></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="VacationPlace" class="form-label">Nơi nghỉ phép (nhập số nhà, tên đường, nếu có)</label>
+                            <input asp-for="VacationPlace" class="form-control" />
+                            <span asp-validation-for="VacationPlace" class="text-danger"></span>
+                        </div>
+
+                        <input type="hidden" id="selectedProvince" value="@Model.ProvinceId" />
+                        <input type="hidden" id="selectedWard" value="@Model.WardId" />
+
+
+
+
+
+
                         <div class="mb-3">
                             <label asp-for="Reason" class="form-label"></label>
                             <textarea asp-for="Reason" class="form-control" rows="2"></textarea>

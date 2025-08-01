@@ -1,5 +1,7 @@
 ﻿
 using AutoMapper;
+using LeaveManagement.Application.Features.Categories.Queries.GetProvinces;
+using LeaveManagement.Application.Features.Categories.Queries.GetWards;
 using LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeaveRequest;
 using LeaveManagement.Application.Features.LeaveRequests.Commands.DeleteLeaveRequest;
 using LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveRequest;
@@ -51,61 +53,27 @@ namespace LeaveManagement.WebUI.Controllers
 
             var year = DateTime.Now.Year;
 
-            var leaveTypes = await _mediator.Send(new GetLeaveTypesQuery());
+            var leaveTypes = await _mediator.Send(new GetLeaveTypesQuery());            
 
-            var modelCurrent = new CreateLeaveRequestViewModel
-            {
-                LeaveTypes = leaveTypes.Select(x => new SelectListItem
+            var totalLeaveDays = await _mediator.Send(new GetTotalLeaveDaysQueryByUser { UserId = userId, Year = year });            
+
+            var countries = await _mediator.Send(new GetCountriesQuery());
+            var provinces = await _mediator.Send(new GetProvincesQuery());
+            List<SelectListItem> countryItems = countries
+                .Select(x => new SelectListItem
                 {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                }).ToList(),
-                FromDate = DateTime.Today,
-                ToDate = DateTime.Today,
-                FromDateType = "Full",
-                ToDateType = "Full",
-                SoNgayPhepNam = _currentUserService.SoNgayPhepNam,
-                SoNgayNghiCoBan = _currentUserService.SoNgayNghiCoBan,
-                NgayPhepCongThem = _currentUserService.NgayPhepCongThem         
-            };
+                    Value = x.CountryCode,
+                    Text = x.CountryName,
+                    Selected = x.CountryCode == "VN"
+                }).ToList();
 
-            //insert UserLeaveBalances khi tạo phiếu
-
-            //for (int i = DateTime.Now.Year; i < (year + 5); i++)
-            //{
-            //    using (var scope = HttpContext.RequestServices.CreateScope())
-            //    {
-            //        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            //        //Kiểm tra bảng UserLeaveBalances, có thông tin userId và year hiện hành không?
-            //        var getUserLeaveBalances = await mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = i });
-
-            //        if (getUserLeaveBalances == null)
-            //        {
-            //            var user = await mediator.Send(new GetTotalLeaveDaysByUserIdAndYear { UserId = userId, Year = i });
-            //            var soNgayPhepNam = user.SoNgayPhepNam;
-
-            //            var userLeaveBalance = await mediator.Send(new AddUserLeaveBalanceCommand
-            //            {
-            //                UserId = userId,
-            //                Year = i,
-            //                LeaveDaysGranted = soNgayPhepNam,
-            //                LeaveDaysRemain = soNgayPhepNam
-            //            });
-
-            //            if (!userLeaveBalance.Success)
-            //            {
-            //                ModelState.AddModelError("", userLeaveBalance.Message!);
-            //                return View(modelCurrent);
-            //            }
-            //        }
-            //    }
-            //}
-
-            var totalLeaveDays = await _mediator.Send(new GetTotalLeaveDaysQueryByUser { UserId = userId, Year = year });
-
-            //var userLeaveBalancesOldYear = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = year});
-
-            //var soNgayDaNghiOldYear = userLeaveBalancesOldYear.LeaveDaysTaken;
+            List<SelectListItem> provinceItems = provinces
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.ProvinceName,
+                    Selected = x.Id == 50029
+                }).ToList();            
 
             var model = new CreateLeaveRequestViewModel
             {
@@ -122,8 +90,15 @@ namespace LeaveManagement.WebUI.Controllers
                 SoNgayNghiCoBan = _currentUserService.SoNgayNghiCoBan,
                 NgayPhepCongThem = _currentUserService.NgayPhepCongThem,
                 TotalLeaveDays = totalLeaveDays
-            };          
+            };            
             
+            model.Countries = countryItems;
+
+            if(model.CountryCode == "VN")
+            {
+                model.Provinces = provinceItems;
+                model.Wards = new List<SelectListItem>();
+            }
 
 
             return View(model);
@@ -144,13 +119,15 @@ namespace LeaveManagement.WebUI.Controllers
             var year = DateTime.Now.Year;
 
             // Lấy số ngày đã nghỉ
-            //var totalLeaveDays = await _mediator.Send(new GetTotalLeaveDaysQueryByUser { UserId = userId, Year = year });
-            //var userLeaveBalancesOldYear = await _mediator.Send(new UserLeaveBalanceQuery { UserId = userId, Year = year });
-            //var soNgayDaNghiOldYear = userLeaveBalancesOldYear.LeaveDaysTaken;
-
             var soNgayDaNghiOldYear = await _mediator.Send(new GetTotalLeaveDaysQueryByUser { UserId = userId, Year = year });
 
+            var countries = await _mediator.Send(new GetCountriesQuery());
+            var provinces = await _mediator.Send(new GetProvincesQuery());
+            var selectedProvinceId = model.ProvinceId != 0 ? model.ProvinceId : 50029; // mặc định Hồ Chí Minh
+            var wards = await _mediator.Send(new GetWardsByProvinceIdQuery { ProvinceId = selectedProvinceId });
+
             // Nạp lại select list loại phép
+            // Nạp lại danh sách các list
             async Task SetDropdownsAndData()
             {
                 var leaveTypes = await _mediator.Send(new GetLeaveTypesQuery());
@@ -165,6 +142,34 @@ namespace LeaveManagement.WebUI.Controllers
                 model.SoNgayNghiCoBan = soNgayNghiCoBan;
                 model.NgayPhepCongThem = ngayPhepCongThem;
                 model.TotalLeaveDays = soNgayDaNghiOldYear;
+
+
+                
+                model.Countries = countries.Select(x => new SelectListItem
+                {
+                    Value = x.CountryCode,
+                    Text = x.CountryName,
+                    Selected = x.CountryCode == (model.CountryCode ?? "VN")
+                }).ToList();
+
+                // Nếu chưa có CountryCode thì mặc định là "VN"
+                var selectedCountry = model.CountryCode ?? "VN";
+                
+                model.Provinces = provinces.Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.ProvinceName,
+                    Selected = x.Id == model.ProvinceId
+                }).ToList();
+
+                // Nếu chưa có ProvinceId, chọn mặc định
+                
+                model.Wards = wards.Select(x => new SelectListItem
+                {
+                    Value = x.WardCode,
+                    Text = x.WardName,
+                    Selected = x.WardCode == model.WardId.ToString()
+                }).ToList();
             }
 
             // 1. Validate ModelState (bắt buộc giữ lại dữ liệu đã nhập)
@@ -172,15 +177,7 @@ namespace LeaveManagement.WebUI.Controllers
             {
                 await SetDropdownsAndData();
                 return View(model);
-            }
-
-            // Nếu nghỉ 1 ngày thì chỉ cần dùng FromDateType, ToDateType bỏ qua (cho đồng nhất form, nếu UI đã xử lý thì có thể bỏ dòng này)
-            if (model.FromDate == model.ToDate)
-            {
-                // Nếu UI để 2 dropdown thì vẫn giữ, còn nếu chỉ có 1 thì sửa lại model cho đúng
-                // model.ToDateType = null;
-            }
-
+            }            
             // 2. Validate nghỉ phép (chặn lỗi nghiệp vụ: ngày nghỉ không hợp lệ, hết phép, v.v.)
             var validateResult = await _mediator.Send(new ValidateLeaveRequest
             {
@@ -217,7 +214,11 @@ namespace LeaveManagement.WebUI.Controllers
                 SoNgayPhepNam = soNgayPhepNam,
                 SoNgayNghiCoBan = soNgayNghiCoBan,
                 NgayPhepCongThem = ngayPhepCongThem,
-                TotalLeaveDays = soNgayDaNghiOldYear
+                TotalLeaveDays = soNgayDaNghiOldYear,
+                CountryName = countries.FirstOrDefault(x => x.CountryCode == model.CountryCode)?.CountryName,
+                ProvinceName = provinces.FirstOrDefault(x => x.Id == model.ProvinceId)?.ProvinceName,
+                WardName = wards.FirstOrDefault(x => x.Id == model.WardId)?.WardName
+
             });
 
             if (!result.Success)
@@ -321,6 +322,21 @@ namespace LeaveManagement.WebUI.Controllers
                 return BadRequest("Không thể hủy đơn.");
 
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProvinces()
+        {
+            var data = await _mediator.Send(new GetProvincesQuery());
+            var a = Json(data);
+            return Json(data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWardsByProvince(int provinceId)
+        {
+            var data = await _mediator.Send(new GetWardsByProvinceIdQuery{ ProvinceId = provinceId });
+            return Json(data);
         }
 
 

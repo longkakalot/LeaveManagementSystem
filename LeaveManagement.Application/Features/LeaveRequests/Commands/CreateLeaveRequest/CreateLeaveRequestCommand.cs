@@ -30,6 +30,9 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.CreateLeav
         public int SoNgayPhepNam { get; set; }
         public int SoNgayPhepNamMoi { get; set; }
         public double TotalLeaveDays { get; set; }
+        public string? CountryName { get; set; }
+        public string? ProvinceName { get; set; }
+        public string? WardName { get; set; }
 
     }
 }

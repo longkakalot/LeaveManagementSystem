@@ -31,6 +31,9 @@ namespace LeaveManagement.Application.DTOs
         public int StepApprove { get; set; }
         public LeaveApprovalStatus ApproveStatus { get; set; }
         public List<LeaveRequestDetailDto> Details { get; set; } = new();
+        public string? CountryName { get; set; }
+        public string? ProvinceName { get; set; }
+        public string? WardName { get; set; }
     }
     public class LeaveRequestDetailDto
     {

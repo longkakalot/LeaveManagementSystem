@@ -239,6 +239,9 @@ namespace LeaveManagement.Infrastructure.Repositories
             parameters.Add("@TotalLeaveDays", request.TotalLeaveDays);
             parameters.Add("@Reason", request.Reason);
             parameters.Add("@VacationPlace", request.VacationPlace);
+            parameters.Add("@CountryName", request.CountryName);
+            parameters.Add("@ProvinceName", request.ProvinceName);
+            parameters.Add("@WardName", request.WardName);
             parameters.Add("@Action", "AddNew");
             parameters.Add("@Id", dbType: System.Data.DbType.Int32, direction: System.Data.ParameterDirection.Output);
 

@@ -40,6 +40,10 @@ namespace LeaveManagement.Domain.Entities
         public double Value { get; set; }
         public int YearDetail { get; set; }
 
+        public string? CountryName { get; set; }
+        public string? ProvinceName { get; set; }
+        public string? WardName { get; set; }
+
     }
     public class LeaveRequestDetailDto
     {

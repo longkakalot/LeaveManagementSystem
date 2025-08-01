@@ -47,6 +47,9 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Queries.GetAllByUse
                     TotalLeaveDays = g.First().TotalLeaveDays,         
                     StepApprove = g.First().StepApprove,
                     StepOrder = g.First().StepOrder,
+                    CountryName = g.First().CountryName,
+                    ProvinceName = g.First().ProvinceName,
+                    WardName = g.First().WardName,
                     // ... các trường master ...
                     Details = g.Select(d => new DTOs.LeaveRequestDetailDto
                     {
