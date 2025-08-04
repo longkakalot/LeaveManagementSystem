@@ -2,113 +2,121 @@
 
 @{
     ViewData["Title"] = "Tạo đơn nghỉ phép";
-
-    <!-- Trong _Layout.cshtml hoặc View cần dùng -->
-        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
-
 }
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-7 col-md-9">
-            <div class="card shadow rounded-3">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">@ViewData["Title"]</h4>
+        <div class="col-12 col-lg-8 col-xl-7">
+            <div class="card shadow rounded-4 border-0">
+                <div class="card-header bg-gradient bg-primary text-white rounded-top-4 pb-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-journal-plus me-2"></i> @ViewData["Title"]
+                    </h4>
                 </div>
                 <div class="card-body p-4">
-                    <div class="mb-3 row">
-                        <label class="col-12 col-form-label fw-bold">Số ngày phép năm (Số ngày phép cơ bản + Số ngày phép cộng thêm): <span class="text-primary fw-bold">@Model.SoNgayPhepNam (@Model.SoNgayNghiCoBan + @Model.NgayPhepCongThem)</span></label>
-                                               
-                    </div>                    
-                    <div class="mb-3 row">
-                        <div class="col-6 col-form-label">
-                            <label class="col-form-label fw-bold">Số ngày đã nghỉ: <span class="text-danger">@Model.TotalLeaveDays</span></label>
-                        </div>                       
-                        
-                        <div class="col-6 col-form-label">
-                            <label class="col-form-label fw-bold text-primary">Số ngày còn phép: <span class="text-danger">@(Model.SoNgayPhepNam - Model.TotalLeaveDays)</span></label>
+
+                    <!-- Info group -->
+                    <div class="mb-3 row g-2">
+                        <div class="col-12 col-sm-8">
+                            <label class="col-form-label fw-bold">
+                                Số ngày phép năm
+                                <span class="text-primary">(@Model.SoNgayPhepNam = @Model.SoNgayNghiCoBan + @Model.NgayPhepCongThem)</span>
+                            </label>
+                        </div>
+                        <div class="col-6">
+                            <span class="fw-bold text-secondary small">
+                                Đã nghỉ: <span class="text-danger">@Model.TotalLeaveDays</span>
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <span class="fw-bold text-secondary small">
+                                Còn lại: <span class="text-success">@((Model.SoNgayPhepNam - Model.TotalLeaveDays).ToString("0.##"))</span>
+                            </span>
                         </div>
                     </div>
 
-
                     <form asp-action="Create" method="post" autocomplete="off">
-                        @* Loại phép *@
-                        <div class="mb-3" hidden >
-                            <label asp-for="LeaveTypeId" class="form-label">Loại nghỉ phép</label>
-                            <select asp-for="LeaveTypeId" asp-items="Model.LeaveTypes" class="form-select"></select>
-                            <span asp-validation-for="LeaveTypeId" class="text-danger"></span>
-                        </div>
-                        @* Chọn ngày nghỉ *@
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="FromDate" class="form-label">Từ ngày</label>
-                                <input asp-for="FromDate" class="form-control" type="date" />
-                                <span asp-validation-for="FromDate" class="text-danger"></span>
+                        <!-- Group: Thông tin nghỉ phép -->
+                        <fieldset class="mb-4 border rounded-3 px-3 pb-2 pt-2">
+                            <legend class="float-none w-auto fs-6 px-2 text-primary mb-2">Thông tin nghỉ phép</legend>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
+                                    <label asp-for="FromDate" class="form-label">Từ ngày</label>
+                                    <input asp-for="FromDate" type="date" class="form-control shadow-sm" />
+                                    <span asp-validation-for="FromDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="ToDate" class="form-label">Đến ngày</label>
+                                    <input asp-for="ToDate" type="date" class="form-control shadow-sm" />
+                                    <span asp-validation-for="ToDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-6" id="from-date-type-group">
+                                    <label class="form-label">Loại nghỉ bắt đầu</label>
+                                    <select asp-for="FromDateType" class="form-select shadow-sm">
+                                        <option value="Full">Cả ngày</option>
+                                        <option value="Morning">Buổi sáng</option>
+                                        <option value="Afternoon">Buổi chiều</option>
+                                    </select>
+                                </div>
+                                <div class="col-6" id="to-date-type-group">
+                                    <label class="form-label">Loại nghỉ kết thúc</label>
+                                    <select asp-for="ToDateType" class="form-select shadow-sm">
+                                        <option value="Full">Cả ngày</option>
+                                        <option value="Morning">Buổi sáng</option>
+                                        <option value="Afternoon">Buổi chiều</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="ToDate" class="form-label">Đến ngày</label>
-                                <input asp-for="ToDate" class="form-control" type="date" />
-                                <span asp-validation-for="ToDate" class="text-danger"></span>
-                            </div>
-                        </div>
-                        @* Chọn nửa ngày *@
-                        <div class="row mb-3">
-                            <div class="col-md-6" id="from-date-type-group">
-                                <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">bắt đầu</span></label>
-                                <select asp-for="FromDateType" class="form-select">
-                                    <option value="Full">Cả ngày</option>
-                                    <option value="Morning">Buổi sáng</option>
-                                    <option value="Afternoon">Buổi chiều</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6" id="to-date-type-group">
-                                <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">kết thúc</span></label>
-                                <select asp-for="ToDateType" class="form-select">
-                                    <option value="Full">Cả ngày</option>
-                                    <option value="Morning">Buổi sáng</option>
-                                    <option value="Afternoon">Buổi chiều</option>
-                                </select>
-                            </div>
-                        </div>
-                        @* Lý do và nơi nghỉ *@
-                        <div class="mb-3">
-                            <label asp-for="Reason" class="form-label">Lý do nghỉ phép</label>
-                            <textarea asp-for="Reason" class="form-control" rows="2"></textarea>
-                            <span asp-validation-for="Reason" class="text-danger"></span>
-                        </div>
-                        
+                        </fieldset>
 
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
+                        <!-- Group: Lý do nghỉ -->
+                        <fieldset class="mb-4 border rounded-3 px-3 pb-2 pt-2">
+                            <legend class="float-none w-auto fs-6 px-2 text-primary mb-2">Lý do nghỉ</legend>
+                            <div class="mb-3">
+                                <label asp-for="Reason" class="form-label">Lý do nghỉ phép</label>
+                                <textarea asp-for="Reason" class="form-control shadow-sm" rows="2"></textarea>
+                                <span asp-validation-for="Reason" class="text-danger"></span>
+                            </div>
+                            
+                        </fieldset>
+
+                        <!-- Group: Quốc gia, tỉnh/thành, phường/xã -->
+                        <fieldset class="mb-4 border rounded-3 px-3 pb-2 pt-2">
+                            <legend class="float-none w-auto fs-6 px-2 text-primary mb-2">Địa điểm nghỉ</legend>
+                            <div class="mb-3">
+                                <label asp-for="VacationPlace" class="form-label">Địa chỉ nơi nghỉ phép (số nhà, tên đường...)</label>
+                                <input asp-for="VacationPlace" class="form-control shadow-sm" />
+                                <span asp-validation-for="VacationPlace" class="text-danger"></span>
+                            </div>
+                            <div class="row g-2 align-items-end mb-3">
+                                <div class="col-12 col-md-12">
                                     <label for="CountryCode" class="form-label">Quốc gia</label>
-                                    <select asp-for="CountryCode" asp-items="Model.Countries" class="form-select" id="CountryCode"></select>
+                                    <select asp-for="CountryCode" asp-items="Model.Countries" class="form-select shadow-sm" id="CountryCode"></select>
+                                </div>                                
+                            </div>
+                            <div class="row g-2 align-items-end mb-3">                                
+                                <div class="col-12 col-md-6">
+                                    <div id="province-block" style="display:@(Model.CountryCode == "VN" ? "block" : "none")">
+                                        <label for="ProvinceId" class="form-label">Tỉnh/Thành phố</label>
+                                        <select asp-for="ProvinceId" asp-items="Model.Provinces" class="form-select shadow-sm" id="ProvinceId"></select>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div id="ward-block" style="display:@(Model.CountryCode == "VN" && (Model.ProvinceId != 0) ? "block" : "none")">
+                                        <label for="WardId" class="form-label">Phường/Xã</label>
+                                        <select asp-for="WardId" asp-items="Model.Wards" class="form-select shadow-sm" id="WardId"></select>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3" id="province-block" style="display:@(Model.CountryCode == "VN" ? "block" : "none")">
-                                    <label for="ProvinceId" class="form-label">Tỉnh/Thành phố</label>
-                                    <select asp-for="ProvinceId" asp-items="Model.Provinces" class="form-select" id="ProvinceId"></select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3" id="ward-block" style="display:@(Model.CountryCode == "VN" && (Model.ProvinceId != 0) ? "block" : "none")">
-                                    <label for="WardId" class="form-label">Phường/Xã</label>
-                                    <select asp-for="WardId" asp-items="Model.Wards" class="form-select" id="WardId"></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="VacationPlace" class="form-label">Nơi nghỉ phép (nhập số nhà, tên đường, nếu có)</label>
-                            <input asp-for="VacationPlace" class="form-control"/>
-                            <span asp-validation-for="VacationPlace" class="text-danger"></span>
-                        </div>
+                        </fieldset>
 
                         <input type="hidden" id="selectedProvince" value="@Model.ProvinceId" />
                         <input type="hidden" id="selectedWard" value="@Model.WardId" />
-                        <div class="text-end">
+
+                        <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-success px-4">
                                 <i class="bi bi-send-check"></i> Gửi yêu cầu
                             </button>
@@ -122,11 +130,10 @@
 
 @if (!ViewData.ModelState.IsValid)
 {
-    <div class="alert alert-danger">
+    <div class="alert alert-danger mt-3">
         @Html.ValidationSummary(false)
     </div>
 }
-
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -134,7 +141,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        // Hiển thị select buổi hợp lý khi nghỉ 1 ngày hay nhiều ngày
+        // Responsive select buổi
         function updateSelects() {
             var from = document.getElementById('FromDate').value;
             var to = document.getElementById('ToDate').value;
@@ -156,22 +163,18 @@
             document.getElementById('ToDate').addEventListener('change', updateSelects);
             updateSelects();
         });
-    </script>
 
-    <script>
         $(document).ready(function () {
             $('#CountryCode').select2({
                 placeholder: 'Chọn quốc gia...',
                 allowClear: true,
                 width: '100%'
             });
-
             $('#ProvinceId').select2({
                 placeholder: 'Chọn tỉnh/thành...',
                 allowClear: true,
                 width: '100%'
             });
-
             $('#WardId').select2({
                 placeholder: 'Chọn xã/phường...',
                 allowClear: true,
@@ -191,7 +194,6 @@
                 $('#ward-block').hide();
             }
 
-            // Sự kiện khi đổi quốc gia
             $('#CountryCode').change(function () {
                 var country = $(this).val();
                 if (country === 'VN') {
@@ -206,7 +208,6 @@
                 }
             });
 
-            // Sự kiện khi đổi tỉnh
             $('#ProvinceId').change(function () {
                 var provinceId = $(this).val();
                 if (provinceId) {
@@ -225,14 +226,12 @@
                     $.each(data, function (i, item) {
                         $('#ProvinceId').append($('<option>', { value: item.id, text: item.provinceName }));
                     });
-
-                    //alert(selectedProvinceId);
                     if (selectedProvinceId != 0) {
                         $('#ProvinceId').val(selectedProvinceId);
                     } else {
                         $('#ProvinceId').val('50029'); // Mặc định Hồ Chí Minh
                     }
-                    $('#ProvinceId').trigger('change'); // Sau khi set, trigger change để load ward
+                    $('#ProvinceId').trigger('change');
                 });
             }
 
@@ -242,21 +241,15 @@
                     $.each(data, function (i, item) {
                         $('#WardId').append($('<option>', { value: item.id, text: item.wardName }));
                     });
-                    //alert(selectedWardId);
                     if (selectedWardId != 0) {
-                        //alert("dfasdf");
                         $('#WardId').val(selectedWardId);
                     }
                     else {
-                        $('#WardId').val('62659');
+                        $('#WardId').val('62659'); // Một ward mặc định, chỉnh lại nếu cần
                     }
                     $('#WardId').trigger('change');
                 });
             }
         });
-
-
-        
     </script>
-
 }

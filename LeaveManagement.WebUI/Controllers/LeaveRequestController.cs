@@ -18,6 +18,8 @@ using LeaveManagement.Application.Features.LeaveRequests.Queries.ValidateLeaveRe
 using LeaveManagement.Application.Features.UserLeaveBalances.Commands.AddUserLeaveBalance;
 using LeaveManagement.Application.Features.UserLeaveBalances.Queries;
 using LeaveManagement.Application.Interfaces;
+using LeaveManagement.Domain.Entities;
+
 //using LeaveManagement.Domain.Entities;
 using LeaveManagement.Domain.Enums;
 using LeaveManagement.WebUI.ViewModels;
@@ -272,17 +274,127 @@ namespace LeaveManagement.WebUI.Controllers
             if (leaveRequest == null || leaveRequest.Status == LeaveStatus.Approved)
                 return RedirectToAction("Index");
 
-            var viewModel = _mapper.Map<LeaveRequestDto>(leaveRequest); // App → Web
+            // Giả sử leaveRequest có các property: CountryCode, ProvinceId, WardId (nếu chưa có, bổ sung vào DTO)
+            var countries = await _mediator.Send(new GetCountriesQuery());
+            var countryCode = countries.Where(m=>m.CountryName == leaveRequest.CountryName).Select(m=>m.CountryCode).FirstOrDefault();
+
+            var provinces = await _mediator.Send(new GetProvincesQuery());
+
+            var provinceId = provinces.Where(m=>m.ProvinceName == leaveRequest.ProvinceName).Select(m => m.Id).FirstOrDefault();
+            var provinceCode = provinces.Where(m=>m.ProvinceName == leaveRequest.ProvinceName).Select(m => m.ProvinceCode).FirstOrDefault();
+
+            var ward1 = await _mediator.Send(new GetWardsByProvinceIdQuery { ProvinceId = provinceId });
+            var wardId = ward1.Where(m=>m.WardName == leaveRequest.WardName).Select(m=>m.Id).FirstOrDefault();
+            var wards = new List<SelectListItem>();
+            if (leaveRequest.ProvinceId > 0)
+            {
+                var wardsData = await _mediator.Send(new GetWardsByProvinceIdQuery { ProvinceId = provinceId });
+                wards = wardsData.Select(x => new SelectListItem
+                {
+                    Value = x.WardCode,
+                    Text = x.WardName,
+                    Selected = x.WardName == leaveRequest.WardName
+                }).ToList();
+            }
+
+            // Build select list cho country
+            List<SelectListItem> countryItems = countries
+                .Select(x => new SelectListItem
+                {
+                    Value = x.CountryCode,
+                    Text = x.CountryName,
+                    Selected = x.CountryCode == countryCode // chọn đúng quốc gia đã lưu
+                }).ToList();
+
+            // Build select list cho province
+            List<SelectListItem> provinceItems = provinces
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.ProvinceName,
+                    Selected = x.Id == leaveRequest.ProvinceId // chọn đúng tỉnh đã lưu
+                }).ToList();
+
+            // Map sang ViewModel
+            var viewModel = _mapper.Map<LeaveRequestDto>(leaveRequest);
+            viewModel.Countries = countryItems;
+            viewModel.Provinces = provinceItems;
+            viewModel.Wards = wards;            
+            // Gán lại Name để input nhận đúng value
+            viewModel.CountryName = leaveRequest.CountryName;
+            viewModel.ProvinceName = leaveRequest.ProvinceName;
+            viewModel.WardName = leaveRequest.WardName;
+
+            viewModel.ProvinceId = provinceId;
+            viewModel.WardId = wardId;
 
             return View(viewModel);
         }
 
+
         [HttpPost]
         public async Task<IActionResult> Edit(EditLeaveRequestCommand model)
-        {           
+        {
+            var countries = await _mediator.Send(new GetCountriesQuery());
+            var provinces = await _mediator.Send(new GetProvincesQuery());
+            var ward1 = await _mediator.Send(new GetWardsByProvinceIdQuery { ProvinceId = model.ProvinceId });
 
-            if (!ModelState.IsValid)
-                return View(model);
+            if (!ModelState.IsValid) 
+            {
+                // Lấy lại danh sách Quốc gia
+                //var countries = await _mediator.Send(new GetCountriesQuery());
+                //var provinces = await _mediator.Send(new GetProvincesQuery());
+
+                //var provinceId = provinces.Where(m => m.Id == model.ProvinceId).Select(m => m.Id).FirstOrDefault();
+                //var provinceCode = provinces.Where(m => m.Id == model.ProvinceId).Select(m => m.ProvinceCode).FirstOrDefault();
+
+                
+                //var wardId = ward1.Where(m => m.Id == model.WardId).Select(m => m.Id).FirstOrDefault();
+
+                var wards = new List<SelectListItem>();
+                var viewModel = _mapper.Map<LeaveRequestDto>(model);
+
+                // Gán lại danh sách và chọn đúng giá trị
+                viewModel.Countries = countries.Select(x => new SelectListItem
+                {
+                    Value = x.CountryCode,
+                    Text = x.CountryName,
+                    Selected = x.CountryCode == model.CountryCode
+                }).ToList();
+
+                viewModel.Provinces = provinces.Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.ProvinceName,
+                    Selected = x.Id == model.ProvinceId
+                }).ToList();
+
+                viewModel.Wards = ward1.Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.WardName,
+                    Selected = x.Id == model.WardId
+                }).ToList();
+
+                // Gán lại value để hiển thị đúng select (nếu dùng select2/ajax)
+                viewModel.CountryName = model.CountryName;
+                viewModel.ProvinceName = model.ProvinceName;
+                viewModel.WardName = model.WardName;
+
+                viewModel.ProvinceId = model.ProvinceId;
+                viewModel.WardId = model.WardId;
+
+                return View(viewModel);
+
+            }
+
+            
+
+            //var provinceId = provinces.Where(m => m.Id == model.ProvinceId).Select(m => m.Id).FirstOrDefault();
+            model.ProvinceName = provinces.Where(m => m.Id == model.ProvinceId).Select(m => m.ProvinceName).FirstOrDefault();            
+            model.WardName = ward1.Where(m=>m.Id == model.WardId).Select(m=>m.WardName).FirstOrDefault();
+            model.CountryName = countries.Where(m=>m.CountryCode == model.CountryCode).Select(m=>m.CountryName).FirstOrDefault();
+               
 
             var command = _mapper.Map<EditLeaveRequestCommand>(model); // giữ lại UserId
             var result = await _mediator.Send(command);
@@ -290,8 +402,48 @@ namespace LeaveManagement.WebUI.Controllers
             if (!result.Success)
             {                
                 ModelState.AddModelError("", result.Message!);
-                var commandR = _mapper.Map<LeaveRequestDto>(model);
-                return View(commandR);
+                // Lấy lại danh sách Quốc gia
+                //var countries = await _mediator.Send(new GetCountriesQuery());
+                //var provinces = await _mediator.Send(new GetProvincesQuery());
+
+                //var provinceId = provinces.Where(m => m.ProvinceName == model.ProvinceName).Select(m => m.Id).FirstOrDefault();
+                //var provinceCode = provinces.Where(m => m.ProvinceName == model.ProvinceName).Select(m => m.ProvinceCode).FirstOrDefault();
+
+                //var ward1 = await _mediator.Send(new GetWardsByProvinceIdQuery { ProvinceId = model.ProvinceId });
+                //var wardId = ward1.Where(m => m.WardName == model.WardName).Select(m => m.Id).FirstOrDefault();
+
+                var viewModel = _mapper.Map<LeaveRequestDto>(model);
+
+                // Gán lại danh sách và chọn đúng giá trị
+                viewModel.Countries = countries.Select(x => new SelectListItem
+                {
+                    Value = x.CountryCode,
+                    Text = x.CountryName,
+                    Selected = x.CountryCode == model.CountryCode
+                }).ToList();
+
+                viewModel.Provinces = provinces.Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.ProvinceName,
+                    Selected = x.Id == model.ProvinceId
+                }).ToList();
+
+                viewModel.Wards = ward1.Select(x => new SelectListItem
+                {
+                    Value = x.WardCode,
+                    Text = x.WardName,
+                    Selected = x.Id == model.WardId
+                }).ToList();
+
+                // Gán lại value để hiển thị đúng select (nếu dùng select2/ajax)
+                viewModel.CountryName = model.CountryName;
+                viewModel.ProvinceName = model.ProvinceName;
+                viewModel.WardName = model.WardName;
+
+                viewModel.ProvinceId = model.ProvinceId;
+                viewModel.WardId = model.WardId;
+                return View(viewModel);
             }
 
             return RedirectToAction("Index");

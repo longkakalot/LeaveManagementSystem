@@ -3,98 +3,98 @@
 @{
     ViewData["Title"] = "Sửa đơn nghỉ phép";
 }
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-7 col-md-9">
-            <div class="card shadow rounded-3">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">@ViewData["Title"]</h4>
+        <div class="col-12 col-lg-8 col-xl-7">
+            <div class="card shadow rounded-4 border-0">
+                <div class="card-header bg-gradient bg-primary text-white rounded-top-4 pb-3">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i> @ViewData["Title"]</h4>
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Edit" method="post" autocomplete="off">
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="UserId" />
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="FromDate" class="form-label"></label>
-                                <input asp-for="FromDate" type="date" class="form-control" />
-                                <span asp-validation-for="FromDate" class="text-danger"></span>
+                        <!-- Group: Thông tin nghỉ phép -->
+                        <fieldset class="mb-4 border rounded-3 px-3 pb-2 pt-2">
+                            <legend class="float-none w-auto fs-6 px-2 text-primary mb-2">Thông tin nghỉ phép</legend>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
+                                    <label asp-for="FromDate" class="form-label">Từ ngày</label>
+                                    <input asp-for="FromDate" type="date" class="form-control shadow-sm" />
+                                    <span asp-validation-for="FromDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="ToDate" class="form-label">Đến ngày</label>
+                                    <input asp-for="ToDate" type="date" class="form-control shadow-sm" />
+                                    <span asp-validation-for="ToDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-6" id="from-date-type-group">
+                                    <label class="form-label">Loại nghỉ bắt đầu</label>
+                                    <select asp-for="FromDateType" class="form-select shadow-sm">
+                                        <option value="Full">Cả ngày</option>
+                                        <option value="Morning">Buổi sáng</option>
+                                        <option value="Afternoon">Buổi chiều</option>
+                                    </select>
+                                </div>
+                                <div class="col-6" id="to-date-type-group">
+                                    <label class="form-label">Loại nghỉ kết thúc</label>
+                                    <select asp-for="ToDateType" class="form-select shadow-sm">
+                                        <option value="Full">Cả ngày</option>
+                                        <option value="Morning">Buổi sáng</option>
+                                        <option value="Afternoon">Buổi chiều</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="ToDate" class="form-label"></label>
-                                <input asp-for="ToDate" type="date" class="form-control" />
-                                <span asp-validation-for="ToDate" class="text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6" id="from-date-type-group">
-                                <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">bắt đầu</span></label>
-                                <select asp-for="FromDateType" class="form-select">
-                                    <option value="Full">Cả ngày</option>
-                                    <option value="Morning">Buổi sáng</option>
-                                    <option value="Afternoon">Buổi chiều</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6" id="to-date-type-group">
-                                <label class="form-label">Loại nghỉ ngày <span class="fw-bold text-primary">kết thúc</span></label>
-                                <select asp-for="ToDateType" class="form-select">
-                                    <option value="Full">Cả ngày</option>
-                                    <option value="Morning">Buổi sáng</option>
-                                    <option value="Afternoon">Buổi chiều</option>
-                                </select>
-                            </div>
-                        </div>
+                        </fieldset>
 
+                        <!-- Group: Lý do -->
+                        <fieldset class="mb-4 border rounded-3 px-3 pb-2 pt-2">
+                            <legend class="float-none w-auto fs-6 px-2 text-primary mb-2">Lý do nghỉ</legend>
+                            <div class="mb-3">
+                                <label asp-for="Reason" class="form-label">Lý do nghỉ phép</label>
+                                <textarea asp-for="Reason" class="form-control shadow-sm" rows="2"></textarea>
+                                <span asp-validation-for="Reason" class="text-danger"></span>
+                            </div>
+                            
+                        </fieldset>
 
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
+                        <!-- Group: Quốc gia, tỉnh/thành, phường/xã -->
+                        <fieldset class="mb-4 border rounded-3 px-3 pb-2 pt-2">
+                            <legend class="float-none w-auto fs-6 px-2 text-primary mb-2">Địa điểm nghỉ</legend>
+                            <div class="mb-3">
+                                <label asp-for="VacationPlace" class="form-label">Địa chỉ nơi nghỉ phép (số nhà, tên đường...)</label>
+                                <input asp-for="VacationPlace" class="form-control shadow-sm" />
+                                <span asp-validation-for="VacationPlace" class="text-danger"></span>
+                            </div>
+                            <div class="row g-2 align-items-end mb-3">
+                                <div class="col-12 col-md-12">
                                     <label for="CountryCode" class="form-label">Quốc gia</label>
-                                    <select asp-for="CountryCode" asp-items="Model.Countries" class="form-select" id="CountryCode"></select>
+                                    <select asp-for="CountryCode" asp-items="Model.Countries" class="form-select shadow-sm" id="CountryCode"></select>
+                                </div>                               
+                            </div>
+                            <div class="row g-2 align-items-end mb-3">                                
+                                <div class="col-12 col-md-6">
+                                    <div id="province-block" style="display:@(Model.CountryCode == "VN" ? "block" : "none")">
+                                        <label for="ProvinceId" class="form-label">Tỉnh/Thành phố</label>
+                                        <select asp-for="ProvinceId" asp-items="Model.Provinces" class="form-select shadow-sm" id="ProvinceId"></select>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div id="ward-block" style="display:@(Model.CountryCode == "VN" && (Model.ProvinceId != 0) ? "block" : "none")">
+                                        <label for="WardId" class="form-label">Phường/Xã</label>
+                                        <select asp-for="WardId" asp-items="Model.Wards" class="form-select shadow-sm" id="WardId"></select>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3" id="province-block" style="display:@(Model.CountryCode == "VN" ? "block" : "none")">
-                                    <label for="ProvinceId" class="form-label">Tỉnh/Thành phố</label>
-                                    <select asp-for="ProvinceId" asp-items="Model.Provinces" class="form-select" id="ProvinceId"></select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3" id="ward-block" style="display:@(Model.CountryCode == "VN" && (Model.ProvinceId != 0) ? "block" : "none")">
-                                    <label for="WardId" class="form-label">Phường/Xã</label>
-                                    <select asp-for="WardId" asp-items="Model.Wards" class="form-select" id="WardId"></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="VacationPlace" class="form-label">Nơi nghỉ phép (nhập số nhà, tên đường, nếu có)</label>
-                            <input asp-for="VacationPlace" class="form-control" />
-                            <span asp-validation-for="VacationPlace" class="text-danger"></span>
-                        </div>
+                        </fieldset>
 
                         <input type="hidden" id="selectedProvince" value="@Model.ProvinceId" />
                         <input type="hidden" id="selectedWard" value="@Model.WardId" />
 
-
-
-
-
-
-                        <div class="mb-3">
-                            <label asp-for="Reason" class="form-label"></label>
-                            <textarea asp-for="Reason" class="form-control" rows="2"></textarea>
-                            <span asp-validation-for="Reason" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="VacationPlace" class="form-label"></label>
-                            <textarea asp-for="VacationPlace" class="form-control" rows="1"></textarea>
-                            <span asp-validation-for="VacationPlace" class="text-danger"></span>
-                        </div>
-                        <div class="text-end">
+                        <div class="d-flex justify-content-end gap-2">
                             <button type="submit" class="btn btn-success px-4">
                                 <i class="bi bi-check2-square"></i> Cập nhật
                             </button>
@@ -109,13 +109,16 @@
 
 @if (!ViewData.ModelState.IsValid)
 {
-    <div class="alert alert-danger">
+    <div class="alert alert-danger mt-3">
         @Html.ValidationSummary(false)
     </div>
 }
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
+
     <script>
         // Hiển thị select buổi hợp lý khi nghỉ 1 ngày hay nhiều ngày
         function updateSelects() {
@@ -138,6 +141,95 @@
             document.getElementById('FromDate').addEventListener('change', updateSelects);
             document.getElementById('ToDate').addEventListener('change', updateSelects);
             updateSelects();
+        });
+
+        $(document).ready(function () {
+            $('#CountryCode').select2({
+                placeholder: 'Chọn quốc gia...',
+                allowClear: true,
+                width: '100%'
+            });
+            $('#ProvinceId').select2({
+                placeholder: 'Chọn tỉnh/thành...',
+                allowClear: true,
+                width: '100%'
+            });
+            $('#WardId').select2({
+                placeholder: 'Chọn xã/phường...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            var selectedProvinceId = $('#selectedProvince').val();
+            var selectedWardId = $('#selectedWard').val();
+
+            // Nếu là VN thì hiển thị các block và load dữ liệu mặc định
+            if ($('#CountryCode').val() === 'VN') {
+                $('#province-block').show();
+                loadProvinces(selectedProvinceId);
+            } else {
+                $('#province-block').hide();
+                $('#ward-block').hide();
+            }
+
+            // Sự kiện khi đổi quốc gia
+            $('#CountryCode').change(function () {
+                var country = $(this).val();
+                if (country === 'VN') {
+                    $('#province-block').show();
+                    var id = $('#selectedProvince').val() || '50029';
+                    loadProvinces(id);
+                } else {
+                    $('#province-block').hide();
+                    $('#ward-block').hide();
+                    $('#ProvinceId').empty();
+                    $('#WardId').empty();
+                }
+            });
+
+            // Sự kiện khi đổi tỉnh
+            $('#ProvinceId').change(function () {
+                var provinceId = $(this).val();
+                if (provinceId) {
+                    $('#ward-block').show();
+                    var id = $('#selectedWard').val();
+                    loadWards(provinceId, id);
+                } else {
+                    $('#ward-block').hide();
+                    $('#WardId').empty();
+                }
+            });
+
+            function loadProvinces(selectedProvinceId) {
+                $.get('/LeaveRequest/GetProvinces', function (data) {
+                    $('#ProvinceId').empty();
+                    $.each(data, function (i, item) {
+                        $('#ProvinceId').append($('<option>', { value: item.id, text: item.provinceName }));
+                    });
+                    if (selectedProvinceId != 0) {
+                        $('#ProvinceId').val(selectedProvinceId);
+                    } else {
+                        $('#ProvinceId').val('50029'); // Hồ Chí Minh mặc định
+                    }
+                    $('#ProvinceId').trigger('change');
+                });
+            }
+
+            function loadWards(provinceId, selectedWardId) {
+                $.get('/LeaveRequest/GetWardsByProvince?provinceId=' + provinceId, function (data) {
+                    $('#WardId').empty();
+                    $.each(data, function (i, item) {
+                        $('#WardId').append($('<option>', { value: item.id, text: item.wardName }));
+                    });
+                    if (selectedWardId != 0) {
+                        $('#WardId').val(selectedWardId);
+                    }
+                    else {
+                        $('#WardId').val('62659');
+                    }
+                    $('#WardId').trigger('change');
+                });
+            }
         });
     </script>
 }

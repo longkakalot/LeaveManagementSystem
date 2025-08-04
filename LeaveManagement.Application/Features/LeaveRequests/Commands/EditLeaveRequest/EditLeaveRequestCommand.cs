@@ -33,7 +33,14 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
         public int StepApprove { get; set; }
         public LeaveApprovalStatus ApproveStatus { get; set; }
         public int LeaveRequestId { get; set; }
-  
+        public string? CountryName { get; set; }
+        public string? ProvinceName { get; set; }
+        public string? WardName { get; set; }
+
+        public string CountryCode { get; set; } = "VN";
+        public int ProvinceId { get; set; }
+        public int WardId { get; set; }
+
     }
 
 }

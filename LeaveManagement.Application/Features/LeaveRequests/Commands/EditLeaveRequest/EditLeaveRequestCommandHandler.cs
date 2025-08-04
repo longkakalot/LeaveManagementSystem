@@ -323,7 +323,10 @@ namespace LeaveManagement.Application.Features.LeaveRequests.Commands.EditLeaveR
                     VacationPlace = request.VacationPlace,
                     Status = 0,
                     RequestedBy = _currentUserService.Id.ToString(),
-                    RequestedDate = DateTime.Now
+                    RequestedDate = DateTime.Now,
+                    CountryName = request.CountryName,
+                    ProvinceName = request.ProvinceName,
+                    WardName = request.WardName
                     // Nếu cần, có thể ghi chú lại số ngày trừ vào từng năm
                 };
 

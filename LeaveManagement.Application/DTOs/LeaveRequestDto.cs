@@ -34,6 +34,14 @@ namespace LeaveManagement.Application.DTOs
         public string? CountryName { get; set; }
         public string? ProvinceName { get; set; }
         public string? WardName { get; set; }
+
+        public string CountryCode { get; set; } = "VN";
+        public int ProvinceId { get; set; }
+        public int WardId { get; set; }
+
+        //public List<SelectListItem> Countries { get; set; } = new();
+        //public List<SelectListItem> Provinces { get; set; } = new();
+        //public List<SelectListItem> Wards { get; set; } = new();
     }
     public class LeaveRequestDetailDto
     {

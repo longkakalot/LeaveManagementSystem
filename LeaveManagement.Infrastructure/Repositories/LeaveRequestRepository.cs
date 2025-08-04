@@ -479,6 +479,9 @@ namespace LeaveManagement.Infrastructure.Repositories
                         TotalLeaveDays = leaveRequest.TotalLeaveDays,
                         Reason = leaveRequest.Reason,
                         VacationPlace = leaveRequest.VacationPlace,
+                        CountryName = leaveRequest.CountryName,
+                        ProvinceName = leaveRequest.ProvinceName,
+                        WardName = leaveRequest.WardName,
                         Action = "Update"
                     },
                     transaction: _transaction,
@@ -503,6 +506,9 @@ namespace LeaveManagement.Infrastructure.Repositories
                         TotalLeaveDays = leaveRequest.TotalLeaveDays,
                         Reason = leaveRequest.Reason,
                         VacationPlace = leaveRequest.VacationPlace,
+                        CountryName = leaveRequest.CountryName,
+                        ProvinceName = leaveRequest.ProvinceName,
+                        WardName = leaveRequest.WardName,
                         Action = "Update"
                     },
                     transaction: _transaction,
